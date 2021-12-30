@@ -1,0 +1,6 @@
+FROM docker.io/archlinux:base
+
+RUN pacman -Syyu --noconfirm && \
+    pacman -S --noconfirm \
+        qemu-headless-arch-extra \
+        zstd
