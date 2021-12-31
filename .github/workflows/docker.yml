@@ -47,5 +47,5 @@ jobs:
           platforms: linux/amd64
           push: ${{ github.repository_owner == 'ClangBuiltLinux' && github.event_name != 'pull_request' && github.ref_name == 'main' }}
           tags: |
-            ghcr.io/clangbuiltlinux/${{ matrix.image }}:latest
             ghcr.io/clangbuiltlinux/${{ matrix.image }}:${{ steps.variables.outputs.date }}
+            ghcr.io/clangbuiltlinux/${{ matrix.image }}:latest
