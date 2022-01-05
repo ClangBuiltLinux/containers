@@ -2,6 +2,7 @@ FROM docker.io/archlinux:base
 
 RUN pacman -Syyu --noconfirm && \
     pacman -S --noconfirm \
+        git \
         python \
         qemu-headless-arch-extra \
         zstd
