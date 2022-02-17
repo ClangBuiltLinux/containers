@@ -4,5 +4,6 @@ RUN pacman -Syyu --noconfirm && \
     pacman -S --noconfirm \
         git \
         python \
+        python-yaml \
         qemu-headless-arch-extra \
         zstd
