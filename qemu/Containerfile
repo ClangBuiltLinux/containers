@@ -5,5 +5,11 @@ RUN pacman -Syyu --noconfirm && \
         git \
         python \
         python-yaml \
-        qemu-headless-arch-extra \
+        qemu-system-aarch64 \
+        qemu-system-arm \
+        qemu-system-mips \
+        qemu-system-ppc \
+        qemu-system-riscv \
+        qemu-system-s390x \
+        qemu-system-x86 \
         zstd
