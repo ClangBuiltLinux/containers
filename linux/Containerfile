@@ -18,6 +18,5 @@ RUN wget --no-clobber --no-verbose https://git.kernel.org/torvalds/t/linux-5.18-
 
 RUN apk add make musl-dev rsync
 
-RUN cd linux-5.18-rc6 && \
-  make INSTALL_HDR_PATH=/sysroot/usr LLVM=1 -j$(nproc) headers_install
+RUN make -C linux-5.18-rc6 INSTALL_HDR_PATH=/sysroot/usr LLVM=1 -j$(nproc) headers_install
 RUN apk del rsync musl-dev make wget

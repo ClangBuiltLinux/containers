@@ -25,14 +25,11 @@ RUN cd musl-1.2.3/build && \
 
 # TODO: build llvm-ar
 RUN apk add make llvm13
-RUN cd musl-1.2.3/build && \
-  make -j$(nproc) AR=llvm-ar RANLIB=llvm-ranlib
+RUN make -C musl-1.2.3/build -j$(nproc) AR=llvm-ar RANLIB=llvm-ranlib
 
-RUN cd musl-1.2.3/build && \
-  make -j$(nproc) DESTDIR=/sysroot install-headers
+RUN make -C musl-1.2.3/build -j$(nproc) DESTDIR=/sysroot install-headers
 
-RUN cd musl-1.2.3/build && \
-  make -j$(nproc) DESTDIR=/sysroot install-libs
+RUN make -C musl-1.2.3/build -j$(nproc) DESTDIR=/sysroot install-libs
 
 COPY hello.c .
 RUN clang --sysroot=/sysroot hello.c && ./a.out
