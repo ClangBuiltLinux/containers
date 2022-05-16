@@ -4,12 +4,10 @@ FROM alpine:edge
 COPY --from=clangbuiltlinux/containers:llvm-project llvm-project/llvm/build/bin /usr/local/bin
 COPY --from=clangbuiltlinux/containers:llvm-project /usr/local/lib /usr/local/lib
 COPY --from=clangbuiltlinux/containers:llvm-project /usr/local/include /usr/local/include
-RUN ln -s /usr/local/lib/x86_64-alpine-linux-musl/libc++abi.so.1 /usr/lib/. && \
-  ln -s /usr/local/lib/x86_64-alpine-linux-musl/libc++.a /usr/lib/. && \
-  ln -s /usr/local/lib/x86_64-alpine-linux-musl/libc++abi.a /usr/lib/. && \
-  ln -s /usr/local/lib/x86_64-alpine-linux-musl/libc++.so.1 /usr/lib/. && \
-  ln -s /usr/local/lib/x86_64-alpine-linux-musl/libunwind.so.1 /usr/lib/. && \
-  ln -s /usr/local/lib/x86_64-alpine-linux-musl/libunwind.a /usr/lib/.
+RUN cd /usr/lib/ && \
+  for library in libc++abi.so.1 libc++.a libc++abi.a libc++.so.1 libunwind.so.1 libunwind.a; \
+    do ln -s "/usr/local/lib/x86_64-alpine-linux-musl/${library}" . ; \
+  done
 
 RUN apk add wget
 

@@ -134,12 +134,10 @@ COPY --from=stage_one /usr/local/lib /usr/local/lib
 COPY --from=stage_one /usr/local/include /usr/local/include
 COPY hello.c hello.cpp /
 
-RUN ln -s /usr/local/lib/x86_64-alpine-linux-musl/libc++abi.so.1 /usr/lib/. && \
-  ln -s /usr/local/lib/x86_64-alpine-linux-musl/libc++.a /usr/lib/. && \
-  ln -s /usr/local/lib/x86_64-alpine-linux-musl/libc++abi.a /usr/lib/. && \
-  ln -s /usr/local/lib/x86_64-alpine-linux-musl/libc++.so.1 /usr/lib/. && \
-  ln -s /usr/local/lib/x86_64-alpine-linux-musl/libunwind.so.1 /usr/lib/. && \
-  ln -s /usr/local/lib/x86_64-alpine-linux-musl/libunwind.a /usr/lib/.
+RUN cd /usr/lib/ && \
+  for library in libc++abi.so.1 libc++.a libc++abi.a libc++.so.1 libunwind.so.1 libunwind.a; \
+    do ln -s "/usr/local/lib/x86_64-alpine-linux-musl/${library}" . ; \
+  done
 
 # The stage 1 build of clang/lld/other binaries still depends on libstdc++.
 RUN apk add --no-cache libstdc++ musl-dev
