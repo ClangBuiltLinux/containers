@@ -1,3 +1,4 @@
+# TODO: comment every one of these.
 set(CMAKE_BUILD_TYPE "Release" CACHE STRING "")
 set(CMAKE_CXX_COMPILER "/usr/bin/clang++" CACHE STRING "")
 set(CMAKE_C_COMPILER "/usr/bin/clang" CACHE STRING "")
