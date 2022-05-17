@@ -1,3 +1,7 @@
+FROM alpine:edge AS source
+RUN wget --no-clobber \
+  https://github.com/llvm/llvm-project/releases/download/llvmorg-14.0.1/llvm-project-14.0.1.src.tar.xz
+
 # Stage one
 FROM alpine:edge AS stage_one
 
@@ -7,8 +11,7 @@ FROM alpine:edge AS stage_one
 #RUN apk add --no-cache clang lld compiler-rt musl-dev
 RUN apk add --no-cache clang lld musl-dev
 
-# TODO: fetch from github, maybe as yet another (earlier) stage?
-COPY llvm-project-14.0.1.src.tar.xz /
+COPY --from=source llvm-project-14.0.1.src.tar.xz /
 RUN tar xf llvm-project-14.0.1.src.tar.xz && \
   mv llvm-project-14.0.1.src llvm-project && \
   mkdir llvm-project/llvm/build
@@ -93,7 +96,7 @@ RUN clang++ hello.cpp \
   -lc++abi && \
   ./a.out
 
-COPY llvm-project-14.0.1.src.tar.xz /
+COPY --from=source llvm-project-14.0.1.src.tar.xz /
 RUN tar xf llvm-project-14.0.1.src.tar.xz && \
   mv llvm-project-14.0.1.src llvm-project && \
   mkdir llvm-project/llvm/build
