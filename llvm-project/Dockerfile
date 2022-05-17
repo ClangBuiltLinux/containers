@@ -7,6 +7,7 @@ FROM alpine:edge AS stage_one
 #RUN apk add --no-cache clang lld compiler-rt musl-dev
 RUN apk add --no-cache clang lld musl-dev
 
+# TODO: fetch from github
 COPY llvm-project-14.0.1.src.tar.xz /
 RUN tar xf llvm-project-14.0.1.src.tar.xz && \
   mv llvm-project-14.0.1.src llvm-project && \
@@ -26,86 +27,18 @@ RUN apk add --no-cache g++ && \
   rm /usr/bin/cpp /usr/bin/c99 /usr/bin/c89 && \
   ln -sf /usr/bin/clang /usr/bin/cc
 
-# If testing clang and clang++
+# Test stage 0 clang and clang++.
 COPY hello.c hello.cpp /
 
 RUN clang hello.c && ./a.out && \
   clang++ hello.cpp && ./a.out
 
-RUN cd llvm-project/llvm/build && cmake \
-  -D CMAKE_BUILD_TYPE=Release \
-  # TODO: these were also ignored by runtimes build!! \
-  # readelf -p .comment llvm-project/llvm/build/bin/clang \
-  -D CMAKE_CXX_COMPILER=/usr/bin/clang++ \
-  -D CMAKE_C_COMPILER=/usr/bin/clang \
-  #-D CMAKE_EXE_LINKER_FLAGS="-fuse-ld=lld --rtlib=compiler-rt" \
-  #-D CMAKE_SHARED_LINKER_FLAGS="-fuse-ld=lld --rtlib=compiler-rt" \
-  -D CMAKE_EXE_LINKER_FLAGS="-fuse-ld=lld" \
-  -D CMAKE_SHARED_LINKER_FLAGS="-fuse-ld=lld" \
-  -D LLVM_ENABLE_ZLIB=FORCE_ON \
-  -D LLVM_ENABLE_LLD=ON \
-  -D LLVM_TARGETS_TO_BUILD="X86;" \
-  -D LLVM_ENABLE_PROJECTS="clang;lld" \
-  -D LLVM_ENABLE_RUNTIMES="compiler-rt;libcxx;libcxxabi;libunwind;" \
-  -D LLVM_DEFAULT_TARGET_TRIPLE=x86_64-alpine-linux-musl \
-  -D CLANG_ENABLE_ARCMT=OFF \
-  -D CLANG_ENABLE_STATIC_ANALYZER=OFF \
-  #-D CLANG_DEFAULT_UNWINDLIB=libunwind \
-  #-D CLANG_DEFAULT_CXX_STDLIB=libc++ \
-  -D CLANG_DEFAULT_LINKER=lld \
-  #-D CLANG_DEFAULT_OBJCOPY=llvm-objcopy \
-  # TODO: this was ignored by runtimes build...\
-  -D CLANG_DEFAULT_RTLIB=compiler-rt \
-  -D CLANG_PLUGIN_SUPPORT=OFF \
-  #-D CLANG_TOOL_AMDGPU_ARCH_BUILD=OFF \
-  #-D CLANG_TOOL_APINOTES_TEST_BUILD=OFF \
-  #-D CLANG_TOOL_ARCMT_TEST_BUILD=OFF \
-  #-D CLANG_TOOL_CLANG_CHECK_BUILD=OFF \
-  #-D CLANG_TOOL_CLANG_DIFF_BUILD=OFF \
-  #-D CLANG_TOOL_CLANG_EXTDEF_MAPPING_BUILD=OFF \
-  #-D CLANG_TOOL_CLANG_FORMAT_BUILD=OFF \
-  #-D CLANG_TOOL_CLANG_FORMAT_VS_BUILD=OFF \
-  #-D CLANG_TOOL_CLANG_FUZZER_BUILD=OFF \
-  #-D CLANG_TOOL_CLANG_IMPORT_TEST_BUILD=OFF \
-  #-D CLANG_TOOL_CLANG_LINKER_WRAPPER_BUILD=OFF \
-  #-D CLANG_TOOL_CLANG_NVLINK_WRAPPER_BUILD=OFF \
-  #-D CLANG_TOOL_CLANG_OFFLOAD_BUNDLER_BUILD=OFF \
-  #-D CLANG_TOOL_CLANG_OFFLOAD_WRAPPER_BUILD=OFF \
-  #-D CLANG_TOOL_CLANG_REFACTOR_BUILD=OFF \
-  #-D CLANG_TOOL_CLANG_RENAME_BUILD=OFF \
-  #-D CLANG_TOOL_CLANG_REPL_BUILD=OFF \
-  #-D CLANG_TOOL_CLANG_SCAN_DEPS_BUILD=OFF \
-  #-D CLANG_TOOL_CLANG_SHLIB_BUILD=OFF \
-  #-D CLANG_TOOL_C_ARCMT_TEST_BUILD=OFF \
-  -D COMPILER_RT_BUILD_MEMPROF=OFF \
-  -D COMPILER_RT_BUILD_BUILTINS=ON \
-  -D COMPILER_RT_BUILD_GWP_ASAN=OFF \
-  -D COMPILER_RT_BUILD_LIBFUZZER=OFF \
-  -D COMPILER_RT_BUILD_ORC=OFF \
-  -D COMPILER_RT_BUILD_PROFILE=OFF \
-  -D COMPILER_RT_BUILD_XRAY=OFF \
-  -D COMPILER_RT_BUILD_SANITIZERS=OFF \
-  -D COMPILER_RT_HAS_GCC_S_LIB=OFF \
-  -D LIBUNWIND_INCLUDE_DOCS=OFF \
-  -D LIBUNWIND_INCLUDE_TESTS=OFF \
-  -D LIBUNWIND_INSTALL_HEADERS=ON \
-  -D LIBUNWIND_USE_COMPILER_RT=ON \
-  -D LIBCXXABI_INCLUDE_TESTS=OFF \
-  -D LIBCXXABI_USE_COMPILER_RT=ON \
-  -D LIBCXXABI_USE_LLVM_UNWINDER=ON \
-  -D LIBCXXABI_ENABLE_STATIC_UNWINDER=ON \
-  -D LIBCXX_HAS_ATOMIC_LIB=OFF \
-  -D LIBCXX_HAS_GCC_LIB=OFF \
-  -D LIBCXX_HAS_GCC_S_LIB=OFF \
-  -D LIBCXX_HAS_MUSL_LIBC=ON \
-  -D LIBCXX_CXX_ABI=libcxxabi \
-  -D LIBCXX_ENABLE_EXPERIMENTAL_LIBRARY=OFF \
-  -D LIBCXX_INCLUDE_BENCHMARKS=OFF \
-  -D LIBCXX_INCLUDE_DOCS=OFF \
-  -D LIBCXX_INCLUDE_TESTS=OFF \
-  -D LIBCXX_USE_COMPILER_RT=ON \
-  -G Ninja \
-  ..
+COPY stage1-runtimes.cmake llvm-project/.
+RUN cmake \
+  -B llvm-project/llvm/build \
+  -C llvm-project/stage1-runtimes.cmake \
+  -S llvm-project/llvm \
+  -G Ninja
 
 # While these could be one single command, generally for development it's very
 # painful when one of many specified targets fail as then nothing gets cached
