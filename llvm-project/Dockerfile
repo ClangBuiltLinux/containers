@@ -103,32 +103,12 @@ RUN apk add --no-cache cmake ninja python3 zlib-dev git zlib-static
 # Cmake will prioritize .so over .a. :(
 RUN rm /lib/libz.so
 
-RUN cd llvm-project/llvm/build && cmake \
-  -D CMAKE_BUILD_TYPE=Release \
-  -D CMAKE_CXX_COMPILER=/usr/local/bin/clang++ \
-  -D CMAKE_C_COMPILER=/usr/local/bin/clang \
-# Stage 1 clang only defaulted-on compiler-rt and lld \
-  -D CMAKE_EXE_LINKER_FLAGS="--unwindlib=libunwind -static -lc++abi" \
-  -D LLVM_STATIC_LINK_CXX_STDLIB=1 \
-  -D LLVM_ENABLE_LIBCXX=ON \
-  #-D LIBCXX_CXX_ABI=libcxxabi \
-  -D CMAKE_SHARED_LINKER_FLAGS="--unwindlib=libunwind" \
-  -D CMAKE_CXX_FLAGS="--stdlib=libc++" \
-  -D LLVM_DEFAULT_TARGET_TRIPLE=x86_64-alpine-linux-musl \
-  -D LLVM_ENABLE_LLD=ON \
-  -D LLVM_ENABLE_PROJECTS="clang;lld" \
-  -D LLVM_ENABLE_ZLIB=FORCE_ON \
-  -D LLVM_TARGETS_TO_BUILD="X86;" \
-  -D CLANG_DEFAULT_CXX_STDLIB=libc++ \
-  -D CLANG_DEFAULT_LINKER=lld \
-  -D CLANG_DEFAULT_OBJCOPY=llvm-objcopy \
-  -D CLANG_DEFAULT_RTLIB=compiler-rt \
-  -D CLANG_DEFAULT_UNWINDLIB=libunwind \
-  -D CLANG_ENABLE_ARCMT=OFF \
-  -D CLANG_ENABLE_STATIC_ANALYZER=OFF \
-  -D CLANG_PLUGIN_SUPPORT=OFF \
-  -G Ninja \
-  ..
+COPY stage2-binaries.cmake llvm-project/.
+RUN cmake \
+  -B llvm-project/llvm/build \
+  -C llvm-project/stage2-binaries.cmake \
+  -S llvm-project/llvm \
+  -G Ninja
 
 RUN ninja -C llvm-project/llvm/build install-clang install-lld
 RUN ninja -C llvm-project/llvm/build install-clang-resource-headers
@@ -141,4 +121,5 @@ RUN apk del libstdc++ cmake ninja python3 zlib-dev git zlib-static
 RUN clang hello.c && ./a.out && \
   clang hello.c -static && ./a.out && \
   clang++ hello.cpp && ./a.out && \
+  # TODO: is this because we didn't set LIBCXX_CXX_ABI=libcxxabi ? \
   clang++ hello.cpp -static -lc++abi && ./a.out
