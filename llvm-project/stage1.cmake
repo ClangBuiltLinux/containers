@@ -1,7 +1,7 @@
 # TODO: comment every one of these.
 set(CMAKE_BUILD_TYPE "Release" CACHE STRING "")
-set(CMAKE_CXX_COMPILER "/usr/bin/clang++" CACHE STRING "")
-set(CMAKE_C_COMPILER "/usr/bin/clang" CACHE STRING "")
+set(CMAKE_CXX_COMPILER "/usr/bin/clang++" CACHE FILEPATH "")
+set(CMAKE_C_COMPILER "/usr/bin/clang" CACHE FILEPATH "")
 set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld" CACHE STRING "")
 set(CMAKE_SHARED_LINKER_FLAGS "-fuse-ld=lld" CACHE STRING "")
 set(LLVM_DEFAULT_TARGET_TRIPLE "x86_64-alpine-linux-musl" CACHE STRING "")
