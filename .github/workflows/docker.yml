@@ -4,11 +4,11 @@ on:
   push:
     paths:
       - .github/workflows/docker.yml
-      - '*/Containerfile'
+      - '*/Dockerfile'
   pull_request:
     paths:
       - .github/workflows/docker.yml
-      - '*/Containerfile'
+      - '*/Dockerfile'
   schedule:
     - cron: 0 0 * * 0
   workflow_dispatch: null
@@ -43,7 +43,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: ./${{ matrix.image }}
-          file: ./${{ matrix.image }}/Containerfile
+          file: ./${{ matrix.image }}/Dockerfile
           platforms: linux/amd64
           push: ${{ github.repository_owner == 'ClangBuiltLinux' && github.event_name != 'pull_request' && github.ref_name == 'main' }}
           tags: |
