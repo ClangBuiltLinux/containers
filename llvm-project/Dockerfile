@@ -107,22 +107,19 @@ RUN cd llvm-project/llvm/build && cmake \
   -G Ninja \
   ..
 
-RUN cd llvm-project/llvm/build && \
-  ninja install-builtins
-RUN cd llvm-project/llvm/build && \
-  ninja install-compiler-rt
-RUN cd llvm-project/llvm/build && \
-  ninja install-unwind
-RUN cd llvm-project/llvm/build && \
-  ninja install-cxxabi
+# While these could be one single command, generally for development it's very
+# painful when one of many specified targets fail as then nothing gets cached
+# by docker. Break these into distinct commands to optimize for development
+# iteration speed.
+RUN ninja -C llvm-project/llvm/build install-builtins
+RUN ninja -C llvm-project/llvm/build install-compiler-rt
+RUN ninja -C llvm-project/llvm/build install-unwind
+RUN ninja -C llvm-project/llvm/build install-cxxabi
 # Necessary for libcxx
-RUN apk add --no-cache linux-headers && \
-  cd llvm-project/llvm/build && \
-  ninja install-cxx
-RUN cd llvm-project/llvm/build && \
-  ninja install-clang install-lld
-RUN cd llvm-project/llvm/build && \
-  ninja install-clang-resource-headers
+RUN apk add --no-cache linux-headers
+RUN ninja -C llvm-project/llvm/build install-cxx
+RUN ninja -C llvm-project/llvm/build install-clang install-lld
+RUN ninja -C llvm-project/llvm/build install-clang-resource-headers
 
 ### END STAGE1
 ### START STAGE2
@@ -200,10 +197,8 @@ RUN cd llvm-project/llvm/build && cmake \
   -G Ninja \
   ..
 
-RUN cd llvm-project/llvm/build && \
-  ninja install-clang install-lld
-RUN cd llvm-project/llvm/build && \
-  ninja install-clang-resource-headers
+RUN ninja -C llvm-project/llvm/build install-clang install-lld
+RUN ninja -C llvm-project/llvm/build install-clang-resource-headers
 
 # Pause for a quick sanity check
 # python3 and cmake both depend on libstdc++
