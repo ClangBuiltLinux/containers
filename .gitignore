@@ -1,3 +1,4 @@
 *.swp
 
 llvm-project/llvm-project-*
+llvm-project/clang

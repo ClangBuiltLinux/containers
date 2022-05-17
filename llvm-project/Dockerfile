@@ -3,11 +3,11 @@ FROM alpine:edge AS stage_one
 
 # Install the stage zero compiler; the prebuilt clang from alpine.
 # _Unwind_Resume issues with llvm-libunwind? Cmake can't find it either?
-# llvm13 for llvm binutils
+# TODO: can we build stage1 with llvm binutils? llvm13 alpine package contains.
 #RUN apk add --no-cache clang lld compiler-rt musl-dev
 RUN apk add --no-cache clang lld musl-dev
 
-# TODO: fetch from github
+# TODO: fetch from github, maybe as yet another (earlier) stage?
 COPY llvm-project-14.0.1.src.tar.xz /
 RUN tar xf llvm-project-14.0.1.src.tar.xz && \
   mv llvm-project-14.0.1.src llvm-project && \
@@ -33,10 +33,10 @@ COPY hello.c hello.cpp /
 RUN clang hello.c && ./a.out && \
   clang++ hello.cpp && ./a.out
 
-COPY stage1-runtimes.cmake llvm-project/.
+COPY stage1.cmake llvm-project/.
 RUN cmake \
   -B llvm-project/llvm/build \
-  -C llvm-project/stage1-runtimes.cmake \
+  -C llvm-project/stage1.cmake \
   -S llvm-project/llvm \
   -G Ninja
 
@@ -103,13 +103,14 @@ RUN apk add --no-cache cmake ninja python3 zlib-dev git zlib-static
 # Cmake will prioritize .so over .a. :(
 RUN rm /lib/libz.so
 
-COPY stage2-binaries.cmake llvm-project/.
+COPY stage2.cmake llvm-project/.
 RUN cmake \
   -B llvm-project/llvm/build \
-  -C llvm-project/stage2-binaries.cmake \
+  -C llvm-project/stage2.cmake \
   -S llvm-project/llvm \
   -G Ninja
 
+# TODO: build the rest of llvm binutils.
 RUN ninja -C llvm-project/llvm/build install-clang install-lld
 RUN ninja -C llvm-project/llvm/build install-clang-resource-headers
 
@@ -123,3 +124,7 @@ RUN clang hello.c && ./a.out && \
   clang++ hello.cpp && ./a.out && \
   # TODO: is this because we didn't set LIBCXX_CXX_ABI=libcxxabi ? \
   clang++ hello.cpp -static -lc++abi && ./a.out
+
+# TODO: I think we want to use CMAKE_INSTALL_LIBDIR, CMAKE_INSTALL_PREFIX, and
+# DESTDIR to start building up the sysroot...then we could avoid this
+# symlinking nonsense at the start of other builds.
