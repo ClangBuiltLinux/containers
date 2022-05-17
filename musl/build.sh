@@ -1,2 +1,2 @@
 #!/usr/bin/env sh
-docker build --tag clangbuiltlinux/containers:musl .
+docker build --tag clangbuiltlinux/musl:latest .

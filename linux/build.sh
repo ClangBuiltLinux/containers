@@ -1,2 +1,2 @@
 #!/usr/bin/env sh
-docker build --tag clangbuiltlinux/containers:linux .
+docker build --tag clangbuiltlinux/linux:latest .
