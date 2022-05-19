@@ -9,7 +9,7 @@ set(LLVM_ENABLE_LLD ON CACHE BOOL "")
 set(LLVM_ENABLE_PROJECTS "clang;lld;" CACHE STRING "")
 set(LLVM_ENABLE_RUNTIMES "compiler-rt;libcxx;libcxxabi;libunwind;" CACHE STRING "")
 set(LLVM_ENABLE_ZLIB "FORCE_ON" CACHE STRING "")
-set(LLVM_TARGETS_TO_BUILD "X86;" CACHE STRING "")
+set(LLVM_TARGETS_TO_BUILD "host;" CACHE STRING "")
 set(CLANG_DEFAULT_LINKER "lld" CACHE STRING "")
 # TODO: it seems this was ignored by the runtimes build...
 set(CLANG_DEFAULT_RTLIB "compiler-rt" CACHE STRING "")
