@@ -22,16 +22,18 @@ RUN tar xf llvm-project-14.0.1.src.tar.xz && \
 RUN apk add --no-cache cmake ninja python3 zlib-dev git
 
 # This seems like a mistake that clang++ in alpine cannot compile C++ hello
-# world.
-# TODO: this also pulls in gnu binutils...
+# world; the libstdc++ headers are distributed with g++ in Alpine rather than
+# the libstdc++ package. So we need to install g++ on Alpine to get the
+# libstdc++ headers, but this will also pull in many dependencies like gcc and
+# GNU binutils. We'll need GNU binutils for now (TODO: do we?) but let's remove
+# the binaries installed by g++ and gcc while keeping the headers to ensure
+# additional level of hermiticity.
 RUN apk add --no-cache g++ && \
-  find /usr/bin/ | grep -e gcc -e g++ | grep -v clang++ | xargs rm && \
-  rm /usr/bin/cpp /usr/bin/c99 /usr/bin/c89 && \
+  apk info -L g++ gcc| grep "^usr/bin" | xargs rm && \
   ln -sf /usr/bin/clang /usr/bin/cc
 
 # Test stage 0 clang and clang++.
 COPY hello.c hello.cpp /
-
 RUN clang hello.c && ./a.out && \
   clang++ hello.cpp && ./a.out
 
