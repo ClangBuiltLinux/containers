@@ -57,13 +57,14 @@ RUN apk add --no-cache linux-headers
 RUN ninja -C llvm-project/llvm/build install-cxx
 RUN ninja -C llvm-project/llvm/build install-clang install-lld
 RUN ninja -C llvm-project/llvm/build install-clang-resource-headers
+RUN ninja -C llvm-project/llvm/build install-llvm-ar
 
 ### END STAGE1
 ### START STAGE2
 
 # STAGE2 goal, build WITHOUT apk add
 FROM alpine:edge as stage_two
-COPY --from=stage_one llvm-project/llvm/build/bin /usr/local/bin
+COPY --from=stage_one /usr/local/bin /usr/local/bin
 COPY --from=stage_one /usr/local/lib /usr/local/lib
 COPY --from=stage_one /usr/local/include /usr/local/include
 COPY hello.c hello.cpp /
