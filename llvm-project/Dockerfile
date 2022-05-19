@@ -13,8 +13,7 @@ RUN apk add --no-cache clang lld musl-dev
 
 COPY --from=source llvm-project-14.0.1.src.tar.xz /
 RUN tar xf llvm-project-14.0.1.src.tar.xz && \
-  mv llvm-project-14.0.1.src llvm-project && \
-  mkdir llvm-project/llvm/build
+  mv llvm-project-14.0.1.src llvm-project
 
 # libcxxabi depends on zlib-dev!
 # compiler-rt depends on libexecinfo-dev! (unless gwp-asan is disabled)
