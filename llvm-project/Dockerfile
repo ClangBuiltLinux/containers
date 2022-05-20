@@ -39,8 +39,9 @@ RUN clang hello.c && ./a.out && \
   clang++ hello.cpp && ./a.out
 
 COPY stage1.cmake llvm-project/.
+ARG LLVM_BUILD_DIR=llvm-project/llvm/build
 RUN cmake \
-  -B llvm-project/llvm/build \
+  -B ${LLVM_BUILD_DIR} \
   -C llvm-project/stage1.cmake \
   -S llvm-project/llvm \
   -G Ninja
@@ -49,16 +50,16 @@ RUN cmake \
 # painful when one of many specified targets fail as then nothing gets cached
 # by docker. Break these into distinct commands to optimize for development
 # iteration speed.
-RUN ninja -C llvm-project/llvm/build install-builtins
-RUN ninja -C llvm-project/llvm/build install-compiler-rt
-RUN ninja -C llvm-project/llvm/build install-unwind
-RUN ninja -C llvm-project/llvm/build install-cxxabi
+RUN ninja -C ${LLVM_BUILD_DIR} install-builtins
+RUN ninja -C ${LLVM_BUILD_DIR} install-compiler-rt
+RUN ninja -C ${LLVM_BUILD_DIR} install-unwind
+RUN ninja -C ${LLVM_BUILD_DIR} install-cxxabi
 # Necessary for libcxx
 RUN apk add --no-cache linux-headers
-RUN ninja -C llvm-project/llvm/build install-cxx
-RUN ninja -C llvm-project/llvm/build install-clang install-lld
-RUN ninja -C llvm-project/llvm/build install-clang-resource-headers
-RUN ninja -C llvm-project/llvm/build install-llvm-ar
+RUN ninja -C ${LLVM_BUILD_DIR} install-cxx
+RUN ninja -C ${LLVM_BUILD_DIR} install-clang install-lld
+RUN ninja -C ${LLVM_BUILD_DIR} install-clang-resource-headers
+RUN ninja -C ${LLVM_BUILD_DIR} install-llvm-ar
 
 ### END STAGE1
 ### START STAGE2
@@ -113,15 +114,16 @@ RUN apk add --no-cache cmake ninja python3 zlib-dev git zlib-static
 RUN rm /lib/libz.so
 
 COPY stage2.cmake llvm-project/.
+ARG LLVM_BUILD_DIR=llvm-project/llvm/build
 RUN cmake \
-  -B llvm-project/llvm/build \
+  -B ${LLVM_BUILD_DIR} \
   -C llvm-project/stage2.cmake \
   -S llvm-project/llvm \
   -G Ninja
 
 # TODO: build the rest of llvm binutils.
-RUN ninja -C llvm-project/llvm/build install-clang install-lld
-RUN ninja -C llvm-project/llvm/build install-clang-resource-headers
+RUN ninja -C ${LLVM_BUILD_DIR} install-clang install-lld
+RUN ninja -C ${LLVM_BUILD_DIR} install-clang-resource-headers
 
 # Pause for a quick sanity check
 # python3 and cmake both depend on libstdc++
