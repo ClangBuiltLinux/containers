@@ -37,12 +37,10 @@ set(LLVM_ENABLE_ZLIB "FORCE_ON" CACHE STRING "")
 # be able to target all of the kernel targets we can build.
 set(LLVM_TARGETS_TO_BUILD "host;" CACHE STRING "")
 
-# Stage1 clang should default to lld rather than BFD.
-# TODO: it seems this was ignored by the runtimes build...
-# otherwise why would CMAKE_EXE_LINKER_FLAGS be necessary?
+# Set clang's default -fuse-ld= to lld.
 set(CLANG_DEFAULT_LINKER "lld" CACHE STRING "")
-# Stage1 clang should default to compiler-rt rather than libgcc.
-# TODO: it seems this was ignored by the runtimes build...
+
+# Set clang's default --rtlib= to compiler-rt.
 set(CLANG_DEFAULT_RTLIB "compiler-rt" CACHE STRING "")
 
 # Disable arc migrate. We don't use that, ever.
