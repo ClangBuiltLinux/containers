@@ -2,45 +2,57 @@ digraph {
   label=<<FONT COLOR="blue">stage one (built from source) </FONT>to <FONT COLOR="purple">stage two (re-built from source)</FONT>>
   labelloc=t
   // inputs
-  stage_zero_musl [label="musl-dev",color=red]
   stage_zero_cmake [label="cmake",color=red]
+  stage_zero_gcc [label="libgcc_s",color=red]
+  stage_zero_git [label="git",color=red]
+  stage_zero_musl [label="musl-dev",color=red]
   stage_zero_ninja [label="ninja",color=red]
   stage_zero_python [label="python3",color=red]
-  stage_zero_zlib [label="zlib-dev",color=red]
-  stage_zero_git [label="git",color=red]
   stage_zero_stdcxx [label="libstdc++",color=red]
-  stage_zero_gcc [label="libgcc_s",color=red]
+  stage_zero_zlib [label="zlib-dev",color=red]
+  stage_zero_zlib_s [label="zlib-static",color=red]
   stage_one_builtins [label="builtins",color=blue]
+  stage_one_clang [label="clang",color=blue]
+  stage_one_cxx [label="cxx",color=blue]
+  stage_one_cxxabi [label="cxxabi",color=blue]
+  stage_one_hdrs [label="clang-resource-headers",color=blue]
+  stage_one_lld [label="lld",color=blue]
   stage_one_rtlib [label="compiler-rt",color=blue]
   stage_one_unwind [label="unwind",color=blue]
-  stage_one_cxxabi [label="cxxabi",color=blue]
-  stage_one_cxx [label="cxx",color=blue]
-  stage_one_clang [label="clang",color=blue]
-  stage_one_lld [label="lld",color=blue]
-  r [label="clang-resource-headers",color=blue]
   // outputs
   stage_two_clang [label="clang",color=purple]
   stage_two_lld [label="lld",color=purple]
   // dependencies (dependee -> dependent; dependent depends on dependee)
-  stage_zero_musl -> stage_one_clang [color=red]
-  stage_zero_zlib -> stage_one_clang [color=red]
-  stage_zero_stdcxx -> stage_one_clang [color=red]
-  stage_zero_gcc -> stage_one_clang [color=red]
-  stage_zero_musl -> stage_one_lld [color=red]
-  stage_zero_zlib -> stage_one_lld [color=red]
-  stage_zero_stdcxx -> stage_one_lld [color=red]
-  stage_zero_gcc -> stage_one_lld [color=red]
-  stage_zero_python -> stage_zero_cmake
-  stage_zero_git -> stage_zero_cmake
-  stage_zero_stdcxx -> stage_zero_cmake
-  stage_zero_musl -> stage_one_unwind [color=red]
-  stage_zero_musl -> stage_one_cxxabi [color=red]
-  stage_zero_musl -> stage_one_cxx [color=red]
-  stage_one_cxxabi -> stage_one_cxx
+  stage_one_builtins -> stage_one_rtlib
   stage_one_clang -> stage_two_clang
-  stage_one_lld -> stage_two_lld
-  stage_one_unwind -> stage_two_clang
   stage_one_cxx -> stage_two_clang
+  stage_one_cxxabi -> stage_one_cxx
+  stage_one_hdrs -> stage_two_clang
+  stage_one_hdrs -> stage_two_lld
+  stage_one_lld -> stage_two_clang
+  stage_one_lld -> stage_two_lld
   stage_one_rtlib -> stage_two_clang
   stage_one_rtlib -> stage_two_lld
+  stage_one_unwind -> stage_two_clang
+  stage_zero_cmake -> stage_zero_ninja
+  stage_zero_gcc -> stage_one_clang [color=red]
+  stage_zero_gcc -> stage_one_lld [color=red]
+  stage_zero_git -> stage_zero_cmake
+  stage_zero_musl -> stage_one_clang [color=red]
+  stage_zero_musl -> stage_one_cxx [color=red]
+  stage_zero_musl -> stage_one_cxxabi [color=red]
+  stage_zero_musl -> stage_one_lld [color=red]
+  stage_zero_musl -> stage_one_unwind [color=red]
+  stage_zero_musl -> stage_zero_cmake
+  stage_zero_musl -> stage_zero_ninja
+  stage_zero_ninja -> stage_two_clang
+  stage_zero_ninja -> stage_two_lld
+  stage_zero_python -> stage_zero_cmake
+  stage_zero_stdcxx -> stage_one_clang [color=red]
+  stage_zero_stdcxx -> stage_one_lld [color=red]
+  stage_zero_stdcxx -> stage_zero_cmake
+  stage_zero_zlib -> stage_one_clang [color=red]
+  stage_zero_zlib -> stage_one_lld [color=red]
+  stage_zero_zlib_s -> stage_two_clang [color=red]
+  stage_zero_zlib_s -> stage_two_lld [color=red]
 }
