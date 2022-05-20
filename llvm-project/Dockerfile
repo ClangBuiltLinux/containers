@@ -5,15 +5,14 @@ RUN wget --no-clobber \
 # Stage one
 FROM alpine:edge AS stage_one
 
-# Install the stage zero compiler; the prebuilt clang from alpine.
-# _Unwind_Resume issues with llvm-libunwind? Cmake can't find it either?
-# TODO: can we build stage1 with llvm binutils? llvm13 alpine package contains.
-#RUN apk add --no-cache clang lld compiler-rt musl-dev
-RUN apk add --no-cache clang lld musl-dev
-
 COPY --from=source llvm-project-14.0.1.src.tar.xz /
 RUN tar xf llvm-project-14.0.1.src.tar.xz && \
   mv llvm-project-14.0.1.src llvm-project
+
+# Install the stage zero compiler; the prebuilt clang from alpine.
+# _Unwind_Resume issues with llvm-libunwind? Cmake can't find it either?
+#RUN apk add --no-cache clang lld compiler-rt musl-dev
+RUN apk add --no-cache clang lld llvm13 musl-dev
 
 # libcxxabi depends on zlib-dev!
 # compiler-rt depends on libexecinfo-dev! (unless gwp-asan is disabled)
