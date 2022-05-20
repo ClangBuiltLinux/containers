@@ -9,8 +9,13 @@ set(CMAKE_BUILD_TYPE "Release" CACHE STRING "")
 set(CMAKE_CXX_COMPILER "/usr/local/bin/clang++" CACHE FILEPATH "")
 
 # Use libc++ from stage1.
-# We could not do this in stage1 because Alpine doesn't distribue libc++ ATM.
-# TODO: does clang cmake not have a CLANG_DEFAULT_* flag for setting this?
+# We could not set CLANG_DEFAULT_CXX_STDLIB in stage1 because Alpine doesn't
+# distribute libc++ ATM.
+# Even though we later will set LLVM_ENABLE_LIBCXX, cmake will fail thinking
+# that "The C++ compiler is not able to compile a simple test program." As with
+# stage1, this is an unfortunate effect of Alpine packaging the stdlibc++
+# headers in the g++ package, rather than the libstdc++ package. In stage1, we
+# used those headers; in stage2 we do not.
 set(CMAKE_CXX_FLAGS "--stdlib=libc++" CACHE STRING "")
 
 # See above comment for CMAKE_CXX_COMPILER.
