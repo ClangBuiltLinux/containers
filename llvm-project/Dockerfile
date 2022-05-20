@@ -27,10 +27,14 @@ RUN apk add --no-cache cmake ninja python3 zlib-dev git
 # libstdc++ headers, but this will also pull in many dependencies like gcc and
 # GNU binutils. We'll need GNU binutils for now (TODO: do we?) but let's remove
 # the binaries installed by g++ and gcc while keeping the headers to ensure
-# additional level of hermiticity.
+# additional level of hermiticity. Also, remove BFD and symlink /usr/bin/ld to
+# LLD.
 RUN apk add --no-cache g++ && \
   apk info -L g++ gcc| grep "^usr/bin" | xargs rm && \
-  ln -sf /usr/bin/clang /usr/bin/cc
+  ln -sf /usr/bin/clang /usr/bin/cc && \
+  rm /usr/bin/ld.bfd /usr/bin/ld /usr/$(clang -print-target-triple)/bin/ld \
+     /usr/$(clang -print-target-triple)/bin/ld.bfd && \
+  ln -sf /usr/bin/ld.lld /usr/bin/ld
 
 # Test stage 0 clang and clang++.
 COPY hello.c hello.cpp /

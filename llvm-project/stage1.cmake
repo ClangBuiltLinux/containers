@@ -8,11 +8,6 @@ set(CMAKE_BUILD_TYPE "Release" CACHE STRING "")
 set(CMAKE_CXX_COMPILER "/usr/bin/clang++" CACHE FILEPATH "")
 set(CMAKE_C_COMPILER "/usr/bin/clang" CACHE FILEPATH "")
 
-# Alpine's clang does not default to LLD; it defaults to BFD. Use LLD when
-# building executables and shared libraries.
-set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld" CACHE STRING "")
-set(CMAKE_SHARED_LINKER_FLAGS "-fuse-ld=lld" CACHE STRING "")
-
 # Set the default target triple to match the host.
 # TODO: passing in the value of $(clang -print-multiarch) causes failures.
 # It seems that alpine clang's default target triple is x86_64-linux-gnu.
