@@ -133,5 +133,4 @@ RUN apk del libstdc++ cmake ninja python3 zlib-dev git zlib-static
 RUN clang hello.c && ./a.out && \
   clang hello.c -static && ./a.out && \
   clang++ hello.cpp && ./a.out && \
-  # TODO: is this because we didn't set LIBCXX_CXX_ABI=libcxxabi ? \
   clang++ hello.cpp -static -lc++abi && ./a.out

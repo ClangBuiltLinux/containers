@@ -86,7 +86,7 @@ set(LIBUNWIND_INSTALL_HEADERS ON CACHE BOOL "")
 # Libunwind should use compiler-rt rather than libgcc.
 set(LIBUNWIND_USE_COMPILER_RT ON CACHE BOOL "")
 
-# TODO: I forget why I enabled this.
+# This is needed to break the cycle between libc, libc++, and libunwind.
 set(LIBCXXABI_ENABLE_STATIC_UNWINDER ON CACHE BOOL "")
 
 # We don't plan to run the tests; don't build them.
@@ -110,8 +110,10 @@ set(LIBCXX_HAS_ATOMIC_LIB OFF CACHE BOOL "")
 set(LIBCXX_HAS_GCC_LIB OFF CACHE BOOL "")
 set(LIBCXX_HAS_GCC_S_LIB OFF CACHE BOOL "")
 
-# This is critical; libc++ depends on a libc. This MUST be set when building
-# against musl otherwise expect libc++ build failures related to locales.
+# The C++ standard library requires the C library. libc++ assumes that the
+# default C library is glibc due to the prevalence, however, as we are using
+# musl, we need to indicate that we are using musl to prevent failures due to
+# incorrect assumptions, particularly about locales.
 set(LIBCXX_HAS_MUSL_LIBC ON CACHE BOOL "")
 
 # We don't plan to run the benchmarks, so don't build them.

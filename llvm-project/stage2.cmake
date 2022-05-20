@@ -23,7 +23,6 @@ set(CMAKE_C_COMPILER "/usr/local/bin/clang" CACHE FILEPATH "")
 
 # Use libunwind from stage1.
 # Statically link resulting executable.
-# TODO: why is -lc++abi necessary for static link?
 set(CMAKE_EXE_LINKER_FLAGS "--unwindlib=libunwind -static -lc++abi" CACHE STRING "")
 set(CMAKE_SHARED_LINKER_FLAGS "--unwindlib=libunwind" CACHE STRING "")
 
