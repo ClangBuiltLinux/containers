@@ -128,5 +128,5 @@ set(LIBCXX_INCLUDE_DOCS OFF CACHE BOOL "")
 # Don't build tests.
 set(LIBCXX_INCLUDE_TESTS OFF CACHE BOOL "")
 
-# We wan't libc++ to use compiler-rt.
+# We want libc++ to use compiler-rt.
 set(LIBCXX_USE_COMPILER_RT ON CACHE BOOL "")
