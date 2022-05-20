@@ -1,5 +1,5 @@
 digraph {
-  label=<<FONT COLOR="blue">stage one (built from source) </FONT>to <FONT COLOR="purple">stage two (re-built from source)</FONT>>
+  label=<<FONT COLOR="blue">stage one (built from source) </FONT>to <FONT COLOR="purple">stage two (statically linked, though composed of objects not built from source)</FONT>>
   labelloc=t
   // inputs
   stage_zero_cmake [label="cmake",color=red]

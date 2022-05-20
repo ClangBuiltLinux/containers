@@ -9,9 +9,9 @@
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 279)">
 <title>%3</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-279 776.74,-279 776.74,4 -4,4"/>
-<text text-anchor="start" x="209.87" y="-260.8" font-family="Times,serif" font-size="14.00" fill="blue">stage one (built from source) </text>
-<text text-anchor="start" x="372.87" y="-260.8" font-family="Times,serif" font-size="14.00">to </text>
-<text text-anchor="start" x="387.87" y="-260.8" font-family="Times,serif" font-size="14.00" fill="purple">stage two (re&#45;built from source)</text>
+<text text-anchor="start" x="81.37" y="-260.8" font-family="Times,serif" font-size="14.00" fill="blue">stage one (built from source) </text>
+<text text-anchor="start" x="244.37" y="-260.8" font-family="Times,serif" font-size="14.00">to </text>
+<text text-anchor="start" x="259.37" y="-260.8" font-family="Times,serif" font-size="14.00" fill="purple">stage two (statically linked, though composed of objects not built from source)</text>
 <!-- stage_zero_cmake -->
 <g id="node1" class="node">
 <title>stage_zero_cmake</title>
