@@ -70,6 +70,9 @@ COPY --from=stage_one /usr/local/lib /usr/local/lib
 COPY --from=stage_one /usr/local/include /usr/local/include
 COPY hello.c hello.cpp /
 
+# TODO: I think we want to use CMAKE_INSTALL_LIBDIR, CMAKE_INSTALL_PREFIX, and
+# DESTDIR to start building up the sysroot...then we could avoid this
+# symlinking nonsense at the start of other builds.
 RUN cd /usr/lib/ && \
   for library in libc++abi.so.1 libc++.a libc++abi.a libc++.so.1 libunwind.so.1 libunwind.a; \
     do ln -s "/usr/local/lib/x86_64-alpine-linux-musl/${library}" . ; \
@@ -130,7 +133,3 @@ RUN clang hello.c && ./a.out && \
   clang++ hello.cpp && ./a.out && \
   # TODO: is this because we didn't set LIBCXX_CXX_ABI=libcxxabi ? \
   clang++ hello.cpp -static -lc++abi && ./a.out
-
-# TODO: I think we want to use CMAKE_INSTALL_LIBDIR, CMAKE_INSTALL_PREFIX, and
-# DESTDIR to start building up the sysroot...then we could avoid this
-# symlinking nonsense at the start of other builds.
