@@ -24,8 +24,8 @@ continuously, that can be hosted on
 - dependencies built from source
 
 ### Stage N-1 goal (stage 4)
-- optional if PGO used instead of AutoFDO
-- collect profile data via PGO
+- only built if doing PGO
+- instrumented to collect profile data from building kernels
 
 ### Stage N goal (stage 5)
 - statically linked
