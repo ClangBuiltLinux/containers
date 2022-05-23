@@ -22,7 +22,7 @@ jobs:
       - name: Build
         uses: docker/build-push-action@v2
         with:
-          context: ./llvm-project/Dockerfile
+          context: ./llvm-project
           file: ./llvm-project/Dockerfile
           platforms: linux/amd64
           push: ${{ github.repository_owner == 'ClangBuiltLinux' && github.event_name != 'pull_request' && github.ref_name == 'main' }}
