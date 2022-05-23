@@ -38,10 +38,10 @@ continuously, that can be hosted on
 ## Dependencies
 
 ### Stage 1 Dependencies
-![stage 1 dependencies](https://github.com/ClangBuiltLinux/containers/tree/main/llvm-project/main/stage1.svg?raw=true)
+![stage 1 dependencies](https://github.com/ClangBuiltLinux/containers/blob/main/llvm-project/stage1.svg?raw=true)
 
 ### Stage 2 Dependencies
-![stage 2 dependencies](https://github.com/ClangBuiltLinux/containers/tree/main/llvm-project/main/stage2.svg?raw=true)
+![stage 2 dependencies](https://github.com/ClangBuiltLinux/containers/blob/main/llvm-project/stage2.svg?raw=true)
 
 
 ## Epochs
