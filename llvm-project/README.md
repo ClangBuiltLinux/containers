@@ -6,23 +6,10 @@ for Linux kernel development, from a series of Docker images built
 continuously, that can be hosted on
 [kernel.org](https://mirrors.edge.kernel.org/pub/tools/crosstool/).
 
-### Stage N goal (stage 5)
-- statically linked
+### Stage N-4 goal (stage 1)
+- use llvm prebuilts from alpine to bootstrap
+- llvm-runtimes build (builds clang and lld, uses those to build runtimes)
 - no dependency on glibc
-- no object files built from gcc
-- consumes PGO or AutoFDO data from kernel builds
-- LTO
-- built entirely from source
-
-### Stage N-1 goal (stage 4)
-- optional if PGO used instead of AutoFDO
-- collect profile data via PGO
-
-### Stage N-2 goal (stage 3)
-- statically linked
-- no dependency on glibc
-- no object files built from gcc
-- dependencies built from source
 
 ### Stage N-3 goal (stage 2)
 - build clang and lld with llvm-runtimes from stage N-4
@@ -30,10 +17,23 @@ continuously, that can be hosted on
 - no dependency on glibc
 - defaults to libc++, lld, compiler-rt, libunwind
 
-### Stage N-4 goal (stage 1)
-- use llvm prebuilts from alpine to bootstrap
-- llvm-runtimes build (builds clang and lld, uses those to build runtimes)
+### Stage N-2 goal (stage 3)
+- statically linked
 - no dependency on glibc
+- no object files built from gcc
+- dependencies built from source
+
+### Stage N-1 goal (stage 4)
+- optional if PGO used instead of AutoFDO
+- collect profile data via PGO
+
+### Stage N goal (stage 5)
+- statically linked
+- no dependency on glibc
+- no object files built from gcc
+- consumes PGO or AutoFDO data from kernel builds
+- LTO
+- built entirely from source
 
 ## Dependencies
 
@@ -50,7 +50,7 @@ A series of epochs are described in order to bootstrap this toolchain for
 multiple different target architectures.
 
 How Dockerfiles and github actions are split up might seem a little odd. In
-order to balance github action build time, vs what needs to actually be
+order to balance github action build time vs what needs to actually be
 published or not on the container registry, we have decided to break up the
 pipeline into "epochs" as follows.
 
@@ -63,3 +63,5 @@ pipeline into "epochs" as follows.
    the registry to rebuild stage 2, rather than re-bootstrap from stage 1.
 3. The "loop" is extended to add in stage 3. The results are published to
    registry, and used rather than re-bootstrapping from stage 2.
+
+TODO: diagrams
