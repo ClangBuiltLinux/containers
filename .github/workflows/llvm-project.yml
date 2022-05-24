@@ -2,8 +2,8 @@ name: Build kernel.org toolchain
 
 on: workflow_dispatch
 jobs:
-  stage_1_2:
-    name: stage 1 and 2
+  epoch1:
+    name: stage 1 and 2 (epoch 1)
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
@@ -23,7 +23,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: ./llvm-project
-          file: ./llvm-project/Dockerfile
+          file: ./llvm-project/Dockerfile.epoch1
           platforms: linux/amd64
           push: ${{ github.repository_owner == 'ClangBuiltLinux' && github.event_name != 'pull_request' && github.ref_name == 'main' }}
           tags: |
