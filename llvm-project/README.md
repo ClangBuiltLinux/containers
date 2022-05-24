@@ -56,6 +56,17 @@ Unfortunately, it's still not entirely built from source yet (sources outside
 of llvm-project have just been statically linked against). That will be the
 goal for stage 3.
 
+To play with this image, you can run:
+```sh
+$ docker run -it ghcr.io/clangbuiltlinux/llvm-project:stage2 ash
+```
+To copy the statically linked clang binary out of it, you can run:
+```
+$ docker create --name temp ghcr.io/clangbuiltlinux/llvm-project:stage2
+$ docker cp temp:/usr/local/bin/clang-14 clang
+$ docker rm temp
+```
+
 ### Stage 3
 
 The goal for stage 3 is to reproduce a similar result to stage 2, but
