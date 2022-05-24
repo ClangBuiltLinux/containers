@@ -4,12 +4,12 @@ RUN wget --no-clobber \
 
 ### START STAGE2
 
-FROM ghcr.io/clangbuiltlinux/llvm-project:stage2 as stage_two
-FROM alpine:edge as stage_three
+FROM ghcr.io/clangbuiltlinux/llvm-project:stage2 as prev_epoch
+FROM alpine:edge as stage_two
 
-COPY --from=stage_two /usr/local/bin /usr/local/bin
-COPY --from=stage_two /usr/local/lib /usr/local/lib
-COPY --from=stage_two /usr/local/include /usr/local/include
+COPY --from=prev_epoch /usr/local/bin /usr/local/bin
+COPY --from=prev_epoch /usr/local/lib /usr/local/lib
+COPY --from=prev_epoch /usr/local/include /usr/local/include
 COPY hello.c hello.cpp /
 
 # TODO: I think we want to use CMAKE_INSTALL_LIBDIR, CMAKE_INSTALL_PREFIX, and
