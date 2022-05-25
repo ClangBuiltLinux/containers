@@ -1,4 +1,4 @@
-name: Build kernel.org toolchain
+name: stage 1 and 2 (epoch 1)
 
 on: workflow_dispatch
 jobs:
