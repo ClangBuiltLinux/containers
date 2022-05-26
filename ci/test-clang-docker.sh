@@ -19,6 +19,17 @@ echo "[+] Testing 'clang --version'"
 "$CC" --version
 
 case "$(source /usr/lib/os-release; echo "$ID")" in
+    arch)
+        musl_cc_flags=(
+            -B /usr/lib/musl/lib     # Scrt1.o, crti.o, crtn.o
+            -I /usr/lib/musl/include # stdio.h
+            -L /usr/lib/musl/lib     # -lc
+        )
+
+        echo "[+] Updating OS and installing musl"
+        pacman -Syyu --noconfirm musl
+        ;;
+
     fedora)
         musl_cc_flags=(
             -B /usr/"$host_arch"-linux-musl/lib64   # Scrt1.o, crti.o, crtn.o

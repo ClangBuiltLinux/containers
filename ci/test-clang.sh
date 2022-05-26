@@ -23,6 +23,8 @@ docker rm llvm-project
 docker_images=(
     docker.io/fedora:latest
 )
+# Arch Linux is x86_64-only
+[[ $(uname -m) = "x86_64" ]] && docker_images+=(docker.io/archlinux:latest)
 for docker_image in "${docker_images[@]}"; do
     echo "[+] Updating '$docker_image'"
     docker pull "$docker_image"
