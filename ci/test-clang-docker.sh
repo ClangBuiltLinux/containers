@@ -49,10 +49,14 @@ echo "[+] Testing statically linking hello.c against musl"
 "$CC" "${musl_cc_flags[@]}" -static -o "$hello_exe" "$hello_c"
 "$hello_exe"
 
-echo "[+] Testing dynamically linking hello.cpp against musl"
+echo "[+] Testing dynamically linking hello.cpp against musl ('--rpath')"
 # --rpath to avoid having to pull in libc++ and libunwind from distribution
 "$CXX" "${musl_cc_flags[@]}" -Wl,--rpath=/repo/toolchain/lib/"$host_arch"-alpine-linux-musl -o "$hello_exe" "$hello_cpp"
 "$hello_exe"
+
+echo "[+] Testing dynamically linking hello.cpp against musl ('LD_LIBRARY_PATH')"
+"$CXX" "${musl_cc_flags[@]}" -o "$hello_exe" "$hello_cpp"
+LD_LIBRARY_PATH=/lib:/repo/toolchain/lib/"$host_arch"-alpine-linux-musl "$hello_exe"
 
 echo "[+] Testing statically linking hello.cpp against musl"
 "$CXX" "${musl_cc_flags[@]}" -static -lc++abi -o "$hello_exe" "$hello_cpp"
