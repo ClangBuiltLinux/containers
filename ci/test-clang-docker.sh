@@ -7,7 +7,8 @@ if [[ ! -d /repo ]]; then
     exit 1
 fi
 
-clang=/repo/toolchain/bin/clang
+CC=/repo/toolchain/bin/clang
+CXX=/repo/toolchain/bin/clang++
 hello_c=/repo/llvm-project/hello.c
 hello_cpp=/repo/llvm-project/hello.cpp
 hello_exe=/tmp/hello
@@ -15,7 +16,7 @@ host_arch=$(uname -m)
 
 # Print clang information, which makes sure it can run
 echo "[+] Testing 'clang --version'"
-"$clang" --version
+"$CC" --version
 
 case "$(source /usr/lib/os-release; echo "$ID")" in
     fedora)
@@ -41,18 +42,18 @@ esac
 ########
 
 echo "[+] Testing dynamically linking hello.c against musl"
-"$clang" "${musl_cc_flags[@]}" -o "$hello_exe" "$hello_c"
+"$CC" "${musl_cc_flags[@]}" -o "$hello_exe" "$hello_c"
 "$hello_exe"
 
 echo "[+] Testing statically linking hello.c against musl"
-"$clang" "${musl_cc_flags[@]}" -static -o "$hello_exe" "$hello_c"
+"$CC" "${musl_cc_flags[@]}" -static -o "$hello_exe" "$hello_c"
 "$hello_exe"
 
 echo "[+] Testing dynamically linking hello.cpp against musl"
 # --rpath to avoid having to pull in libc++ and libunwind from distribution
-"$clang"++ "${musl_cc_flags[@]}" -Wl,--rpath=/repo/toolchain/lib/"$host_arch"-alpine-linux-musl -o "$hello_exe" "$hello_cpp"
+"$CXX" "${musl_cc_flags[@]}" -Wl,--rpath=/repo/toolchain/lib/"$host_arch"-alpine-linux-musl -o "$hello_exe" "$hello_cpp"
 "$hello_exe"
 
 echo "[+] Testing statically linking hello.cpp against musl"
-"$clang"++ "${musl_cc_flags[@]}" -static -lc++abi -o "$hello_exe" "$hello_cpp"
+"$CXX" "${musl_cc_flags[@]}" -static -lc++abi -o "$hello_exe" "$hello_cpp"
 "$hello_exe"
