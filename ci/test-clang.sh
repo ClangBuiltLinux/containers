@@ -27,5 +27,5 @@ for docker_image in "${docker_images[@]}"; do
     echo "[+] Updating '$docker_image'"
     docker pull "$docker_image"
     echo "[+] Testing clang in '$docker_image' container"
-    docker run --rm -v "$rootdir":/repo:ro "$docker_image" bash /repo/ci/test-clang-docker.sh
+    docker run --rm --volume "$rootdir":/repo:ro "$docker_image" bash /repo/ci/test-clang-docker.sh
 done
