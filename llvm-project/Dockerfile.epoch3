@@ -1,0 +1,92 @@
+#ARG base=ghcr.io/clangbuiltlinux/llvm-project:stage2
+# DO NOT COMMIT
+ARG base=epoch2
+
+FROM alpine:edge AS source
+RUN wget --no-verbose https://git.kernel.org/torvalds/t/linux-5.18-rc6.tar.gz
+RUN wget --no-verbose https://musl.libc.org/releases/musl-1.2.3.tar.gz
+RUN wget --no-verbose https://zlib.net/zlib-1.2.12.tar.gz
+RUN wget --no-verbose https://github.com/llvm/llvm-project/releases/download/llvmorg-14.0.1/llvm-project-14.0.1.src.tar.xz
+
+FROM ${base} AS stage2
+FROM alpine:edge AS stage3
+
+### BEGIN STAGE3
+
+COPY --from=stage2 /usr/local/bin /usr/local/bin
+COPY --from=stage2 /usr/local/lib /usr/local/lib
+COPY --from=stage2 /usr/local/include /usr/local/include
+RUN cd /usr/lib/ && \
+  for library in libc++abi.so.1 libc++.a libc++abi.a libc++.so.1 libunwind.so.1 libunwind.a; \
+    do ln -s "/usr/local/lib/x86_64-alpine-linux-musl/${library}" . ; \
+  done
+
+### Linux
+COPY --from=source linux-5.18-rc6.tar.gz .
+RUN tar xf linux-5.18-rc6.tar.gz
+RUN apk add make musl-dev rsync
+RUN make -C linux-5.18-rc6 INSTALL_HDR_PATH=/sysroot/usr LLVM=1 -j$(nproc) headers_install
+RUN apk del rsync musl-dev make
+
+### Musl
+COPY --from=source musl-1.2.3.tar.gz .
+RUN tar xf musl-1.2.3.tar.gz
+ARG MUSL_DIR=musl-1.2.3/build
+RUN mkdir -p ${MUSL_DIR}
+RUN cd ${MUSL_DIR} && \
+  CC=clang AR=llvm-ar RANLIB=llvm-ranlib \
+  ../configure --prefix=/usr --syslibdir=/usr/lib
+RUN apk add make
+RUN make -C ${MUSL_DIR} -j$(nproc)
+RUN make -C ${MUSL_DIR} -j$(nproc) DESTDIR=/sysroot install-headers
+RUN make -C ${MUSL_DIR} -j$(nproc) DESTDIR=/sysroot install-libs
+RUN apk del make
+
+# Pause for a quick sanity check
+COPY hello.c hello.cpp /
+ARG SYSROOT=--sysroot=/sysroot
+RUN clang ${SYSROOT} hello.c && ./a.out && \
+  clang ${SYSROOT} hello.c -static && ./a.out && \
+  clang++ ${SYSROOT} hello.cpp && ./a.out && \
+  clang++ ${SYSROOT} hello.cpp -static -lc++abi && ./a.out
+
+### Zlib
+COPY --from=source zlib-1.2.12.tar.gz .
+RUN tar xf zlib-1.2.12.tar.gz
+ARG ZLIB_DIR=zlib-1.2.12/build
+RUN mkdir -p ${ZLIB_DIR}
+RUN cd ${ZLIB_DIR} && \
+  CC="clang ${SYSROOT}" AR=llvm-ar ../configure --prefix=/sysroot/usr
+RUN apk add make
+RUN make -C ${ZLIB_DIR} -j$(nproc)
+RUN make -C ${ZLIB_DIR} -j$(nproc) install
+RUN apk del make
+
+### LLVM
+COPY --from=source llvm-project-14.0.1.src.tar.xz .
+RUN tar xf llvm-project-14.0.1.src.tar.xz && \
+  mv llvm-project-14.0.1.src llvm-project
+RUN apk add cmake ninja python3
+COPY stage3.cmake llvm-project/.
+ARG LLVM_BUILD_DIR=llvm-project/llvm/build
+RUN cmake \
+  -B ${LLVM_BUILD_DIR} \
+  -C llvm-project/stage3.cmake \
+  -S llvm-project/llvm \
+  -G Ninja
+RUN ninja -C ${LLVM_BUILD_DIR} install-clang install-lld
+RUN ninja -C ${LLVM_BUILD_DIR} install-clang-resource-headers
+RUN ninja -C ${LLVM_BUILD_DIR} \
+  install-llvm-ar \
+  install-llvm-nm \
+  install-llvm-objcopy \
+  install-llvm-objdump \
+  install-llvm-ranlib \
+  install-llvm-readelf \
+  install-llvm-strip
+
+RUN apk del cmake ninja python3
+
+# Final test
+RUN llvm-readelf -p .comment $(which clang) | grep -e clang -e LLD
+RUN llvm-readelf -p .comment $(which clang) | grep -v GCC
