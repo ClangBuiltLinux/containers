@@ -24,7 +24,13 @@ jobs:
         with:
           context: ./llvm-project
           file: ./llvm-project/Dockerfile.epoch1
+          load: true
           platforms: linux/amd64
-          push: ${{ github.repository_owner == 'ClangBuiltLinux' && github.event_name != 'pull_request' && github.ref_name == 'main' }}
           tags: |
             ghcr.io/clangbuiltlinux/llvm-project:stage2
+      - name: Test statically linked clang
+        run: bash ci/test-clang.sh
+      - name: Push image to ghcr.io
+        if: ${{ github.repository_owner == 'ClangBuiltLinux' && github.event_name != 'pull_request' && github.ref_name == 'main' }}
+        run: |
+          docker push ghcr.io/clangbuiltlinux/llvm-project:stage2
