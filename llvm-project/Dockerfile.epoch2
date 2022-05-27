@@ -10,7 +10,6 @@ FROM alpine:edge as stage_two
 COPY --from=prev_epoch /usr/local/bin /usr/local/bin
 COPY --from=prev_epoch /usr/local/lib /usr/local/lib
 COPY --from=prev_epoch /usr/local/include /usr/local/include
-COPY hello.c hello.cpp /
 
 # TODO: I think we want to use CMAKE_INSTALL_LIBDIR, CMAKE_INSTALL_PREFIX, and
 # DESTDIR to start building up the sysroot...then we could avoid this
@@ -23,6 +22,7 @@ RUN cd /usr/lib/ && \
 RUN apk add musl-dev
 
 # Pause for a quick sanity check
+COPY hello.c hello.cpp /
 RUN clang hello.c && ./a.out && \
   clang hello.c -static && ./a.out && \
   clang++ hello.cpp && ./a.out && \
@@ -30,8 +30,7 @@ RUN clang hello.c && ./a.out && \
 
 COPY --from=source llvm-project-14.0.1.src.tar.xz /
 RUN tar xf llvm-project-14.0.1.src.tar.xz && \
-  mv llvm-project-14.0.1.src llvm-project && \
-  mkdir llvm-project/llvm/build
+  mv llvm-project-14.0.1.src llvm-project
 
 RUN apk add --no-cache cmake ninja python3 zlib-dev git zlib-static
 
