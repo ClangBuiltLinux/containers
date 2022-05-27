@@ -46,8 +46,15 @@ RUN cmake \
   -S llvm-project/llvm \
   -G Ninja
 
-# TODO: build the rest of llvm binutils.
 RUN ninja -C ${LLVM_BUILD_DIR} install-clang install-lld
 RUN ninja -C ${LLVM_BUILD_DIR} install-clang-resource-headers
+RUN ninja -C ${LLVM_BUILD_DIR} \
+  install-llvm-ar \
+  install-llvm-nm \
+  install-llvm-objcopy \
+  install-llvm-objdump \
+  install-llvm-ranlib \
+  install-llvm-readelf \
+  install-llvm-strip
 
 RUN apk del musl-dev cmake ninja python3 zlib-dev git zlib-static
