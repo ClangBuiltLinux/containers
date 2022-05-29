@@ -1,9 +1,9 @@
-name: stage 1 and 2 (epoch 1)
+name: llvm-project (epoch 1)
 
 on: workflow_dispatch
 jobs:
   epoch1:
-    name: stage 1 and 2 (epoch 1)
+    name: stage 1 and 2
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
