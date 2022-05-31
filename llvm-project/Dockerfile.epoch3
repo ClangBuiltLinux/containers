@@ -1,6 +1,4 @@
-#ARG base=ghcr.io/clangbuiltlinux/llvm-project:stage2
-# DO NOT COMMIT
-ARG base=epoch2
+ARG base=ghcr.io/clangbuiltlinux/llvm-project:stage2
 
 FROM alpine:edge AS source
 RUN wget --no-verbose https://git.kernel.org/torvalds/t/linux-5.18-rc6.tar.gz
