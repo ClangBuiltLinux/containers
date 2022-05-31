@@ -11,7 +11,7 @@ set(CMAKE_C_FLAGS "--sysroot=/sysroot" CACHE STRING "")
 set(CMAKE_EXE_LINKER_FLAGS "-static -lc++abi" CACHE STRING "")
 
 # Set the default target triple to match the host.
-# TODO: passing in the value of $(clang -print-multiarch) causes failures.
+# TODO: passing in the value of $(clang -print-target-triple) causes failures.
 # It seems that alpine clang's default target triple is x86_64-linux-gnu.
 # Perhaps missing alpine in the triple causes some incompatibility?
 set(LLVM_DEFAULT_TARGET_TRIPLE x86_64-alpine-linux-musl CACHE STRING "")
