@@ -35,3 +35,13 @@ for docker_image in "${docker_images[@]}"; do
         "$docker_image" \
         bash /repo/ci/test-clang-docker.sh
 done
+
+# Tar up the toolchain so it can be uploaded via GitHub Actions
+echo "[+] Creating toolchain archive"
+tar \
+    --create \
+    --directory "$toolchain" \
+    --file "$rootdir"/toolchain.tar.zst \
+    --verbose \
+    --zstd \
+    bin include lib
