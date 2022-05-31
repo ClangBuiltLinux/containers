@@ -10,7 +10,7 @@ toolchain=$rootdir/toolchain
 
 # Pull toolchain out of container
 echo "[+] Downloading toolchain from container"
-docker create --name llvm-project ghcr.io/clangbuiltlinux/llvm-project:stage2
+docker create --name llvm-project "$1"
 mkdir "$toolchain"
 docker cp llvm-project:/usr/local/bin "$toolchain"
 docker cp llvm-project:/usr/local/include "$toolchain"
