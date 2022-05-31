@@ -10,26 +10,22 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
-      - name: Setup Docker Buildx
-        uses: docker/setup-buildx-action@v2
-      - name: Login to GitHub Container Registry
+
+      - name: Build and test llvm-project
+        uses: ./.github/actions/build-test-llvm-project
+        with:
+          file: ./llvm-project/Dockerfile.epoch3
+          platforms: linux/amd64
+          tags: ghcr.io/clangbuiltlinux/llvm-project:stage3
+
+      - name: Login to ghcr.io
         if: ${{ github.repository_owner == 'ClangBuiltLinux' && github.event_name != 'pull_request' && github.ref_name == 'main' }}
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build
-        uses: docker/build-push-action@v3
-        with:
-          context: ./llvm-project
-          file: ./llvm-project/Dockerfile.epoch3
-          load: true
-          platforms: linux/amd64
-          tags: |
-            ghcr.io/clangbuiltlinux/llvm-project:stage3
-      - name: Test statically linked clang
-        run: bash ci/test-clang.sh
+
       - name: Push image to ghcr.io
         if: ${{ github.repository_owner == 'ClangBuiltLinux' && github.event_name != 'pull_request' && github.ref_name == 'main' }}
         run: |
