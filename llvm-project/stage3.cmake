@@ -34,7 +34,6 @@ set(LLVM_ENABLE_ZLIB "FORCE_ON" CACHE STRING "")
 set(LLVM_STATIC_LINK_CXX_STDLIB "1" CACHE STRING "")
 
 # Just build support for x86 for now.
-# TODO: change this to host when adding more stages.
 set(LLVM_TARGETS_TO_BUILD "host;" CACHE STRING "")
 
 # Set clang's default --stdlib= to libc++.
