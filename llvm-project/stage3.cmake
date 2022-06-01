@@ -3,6 +3,11 @@
 # Enable optimizations, as opposed to a debug build.
 set(CMAKE_BUILD_TYPE "Release" CACHE STRING "")
 
+# Explicitly use stage2's clang. Not necessary, just being explicit.
+set(CMAKE_CXX_COMPILER "/usr/local/bin/clang++" CACHE FILEPATH "")
+set(CMAKE_C_COMPILER "/usr/local/bin/clang" CACHE FILEPATH "")
+
+# See above comment for CMAKE_CXX_COMPILER.
 # Use the sysroot we've been building up.
 set(CMAKE_CXX_FLAGS "--sysroot=/sysroot" CACHE STRING "")
 set(CMAKE_C_FLAGS "--sysroot=/sysroot" CACHE STRING "")
