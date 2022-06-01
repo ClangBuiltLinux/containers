@@ -14,7 +14,7 @@ jobs:
       - name: Build and test llvm-project
         uses: ./.github/actions/build-test-llvm-project
         with:
-          file: ./llvm-project/Dockerfile.epoch3
+          file: Dockerfile.epoch3
           platforms: linux/amd64
           tags: ghcr.io/clangbuiltlinux/llvm-project:stage3
 
