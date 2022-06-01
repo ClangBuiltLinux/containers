@@ -4,9 +4,17 @@ on: workflow_dispatch
 jobs:
   epoch3:
     name: stage 3
-    runs-on: [self-hosted, x64]
+    runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: true
+      fail-fast: false
+      matrix:
+        include:
+          - arch: arm64
+            os: [self-hosted, arm64]
+            platforms: linux/arm64
+          - arch: x86_64
+            os: [self-hosted, x64]
+            platforms: linux/amd64
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
