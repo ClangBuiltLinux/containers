@@ -16,7 +16,7 @@ COPY --from=stage2 /usr/local/lib /usr/local/lib
 COPY --from=stage2 /usr/local/include /usr/local/include
 RUN cd /usr/lib/ && \
   for library in libc++abi.so.1 libc++.a libc++abi.a libc++.so.1 libunwind.so.1 libunwind.a; \
-    do ln -s "/usr/local/lib/x86_64-alpine-linux-musl/${library}" . ; \
+    do ln -s "/usr/local/lib/$(uname -m)-alpine-linux-musl/${library}" . ; \
   done
 
 ### Linux
@@ -70,6 +70,7 @@ ARG LLVM_BUILD_DIR=llvm-project/llvm/build
 RUN cmake \
   -B ${LLVM_BUILD_DIR} \
   -C llvm-project/stage3.cmake \
+  -DLLVM_DEFAULT_TARGET_TRIPLE=$(clang -print-target-triple) \
   -S llvm-project/llvm \
   -G Ninja
 RUN ninja -C ${LLVM_BUILD_DIR} install-clang install-lld
