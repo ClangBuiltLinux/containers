@@ -21,7 +21,7 @@ function checks() {
     case "$ID" in
         fedora) ;;
         *)
-            echo "[-] $NAME has not been tested with this script!"
+            echo "[-] Support for $NAME has not been added to this script!"
             exit 1
             ;;
     esac
@@ -51,17 +51,33 @@ function resize_rootfs() {
 
 function update_install_packages() {
     echo "[+] Updating operating system"
-    dnf update -qy
+    case "$ID" in
+        fedora)
+            dnf update -qy
+            ;;
+        *)
+            echo "[-] Support for $NAME has not been added to update_install_packages()"
+            exit 1
+            ;;
+    esac
 
     echo "[+] Installing necessary packages"
-    dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
-    dnf install -qy \
-        containerd.io \
-        docker-ce \
-        docker-ce-cli \
-        docker-compose-plugin \
-        git \
-        zstd
+    case "$ID" in
+        fedora)
+            dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+            dnf install -qy \
+                containerd.io \
+                docker-ce \
+                docker-ce-cli \
+                docker-compose-plugin \
+                git \
+                zstd
+            ;;
+        *)
+            echo "[-] Support for $NAME has not been added to update_install_packages()"
+            exit 1
+            ;;
+    esac
 }
 
 function configure_docker() {
