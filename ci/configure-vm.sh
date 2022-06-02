@@ -35,12 +35,17 @@ function checks() {
 
 function resize_rootfs() {
     echo "[+] Resizing root filesystem if necessary"
-    dev_mapper=$(df -H | grep /dev/mapper/ | cut -d ' ' -f 1)
+    dev_mapper=$(df -HT | grep /dev/mapper/)
     if [[ -n ${dev_mapper:-} ]]; then
         # This might fail if the volume has already been resized, don't make it
         # fatal to the script
-        lvextend -l +100%FREE "$dev_mapper" || true
-        xfs_growfs "$dev_mapper"
+        dev_mapper_path=$(echo "$dev_mapper" | cut -d ' ' -f 1)
+        lvextend -l +100%FREE "$dev_mapper_path" || true
+
+        dev_mapper_fs_type=$(echo "$dev_mapper" | cut -d ' ' -f 2)
+        if [[ $dev_mapper_fs_type = "xfs" ]]; then
+            xfs_growfs "$dev_mapper_path"
+        fi
     fi
 }
 
