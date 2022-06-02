@@ -102,7 +102,7 @@ function install_cleanup_sh() {
     echo "[+] Setting up clean up script"
 
     cleanup_sh=/home/$username/cleanup.sh
-    cat << 'EOF' >"$cleanup_sh"
+    cat <<'EOF' >"$cleanup_sh"
 #!/usr/bin/env bash
 
 rm -frv "${GITHUB_WORKSPACE%/*}"
