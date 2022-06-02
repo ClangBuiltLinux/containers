@@ -4,7 +4,7 @@ on: workflow_dispatch
 jobs:
   epoch1:
     name: stage 1 and 2
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, x64]
     strategy:
       fail-fast: true
     steps:
