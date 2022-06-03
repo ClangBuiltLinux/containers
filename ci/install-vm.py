@@ -67,6 +67,7 @@ def main():
 
     virt_install = ["virt-install"]
     virt_install += ["--boot", "uefi"]
+    virt_install += ["--connect", "qemu:///system"]
     virt_install += ["--console", "pty,target_type=serial"]
     virt_install += ["--cpu", cpu]
     virt_install += ["--disk", "size={},format=qcow2".format(args.size)]
@@ -86,7 +87,9 @@ def main():
     virt_install += ["--virt-type", "kvm"]
 
     subprocess.run(virt_install, check=True)
-    subprocess.run(["virsh", "autostart", args.name], check=True)
+
+    virsh = ["virsh", "--connect", "qemu:///system", "autostart", args.name]
+    subprocess.run(virsh, check=True)
 
 
 if __name__ == '__main__':
