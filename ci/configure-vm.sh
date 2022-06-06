@@ -28,7 +28,8 @@ function checks() {
 
     if [[ ! -f $workspace/svc.sh ]]; then
         echo "[-] Runner must be configured already!"
-        echo '[-] Follow all "Download" steps and the first "Configure" step on the "Create self-hosted runner" page.'
+        echo '[-] Follow all "Download" steps and the first "Configure" step on the "Create self-hosted runner" page:'
+        echo "[-] https://github.com/ClangBuiltLinux/containers/settings/actions/runners/new"
         exit 1
     fi
 }
