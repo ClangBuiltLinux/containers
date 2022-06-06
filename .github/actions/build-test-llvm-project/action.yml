@@ -25,6 +25,7 @@ runs:
         file: ./llvm-project/${{ inputs.file }}
         load: true
         platforms: ${{ inputs.platform }}
+        pull: true
         tags: ${{ inputs.tags }}
 
     - name: Test statically linked clang

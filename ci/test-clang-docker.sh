@@ -18,7 +18,9 @@ host_arch=$(uname -m)
 echo "[+] Testing 'clang --version'"
 "$CC" --version
 
-case "$(source /usr/lib/os-release; echo "$ID")" in
+# shellcheck disable=SC1091
+source /usr/lib/os-release
+case "$ID" in
     arch)
         musl_cc_flags=(--sysroot=/usr/lib/musl)
 
