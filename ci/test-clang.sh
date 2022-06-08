@@ -31,7 +31,7 @@ for docker_image in "${docker_images[@]}"; do
     echo "[+] Testing clang in '$docker_image' container"
     "$docker" run \
         --rm \
-        --volume "$rootdir":/repo:ro \
+        --volume "$rootdir":/repo:ro,z \
         "$docker_image" \
         bash /repo/ci/test-clang-docker.sh
 done
