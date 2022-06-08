@@ -12,7 +12,7 @@ inputs:
     description: Password or PAT used to login.
     required: true
 
-  name:
+  image:
     description: The name of the image to push.
     required: true
   tag:

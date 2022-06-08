@@ -34,5 +34,5 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-          name: clangbuiltlinux/llvm-project
+          image: clangbuiltlinux/llvm-project
           tag: stage2
