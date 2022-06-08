@@ -1,11 +1,11 @@
-FROM alpine:edge AS source
+FROM docker.io/alpine:edge AS source
 RUN wget --no-clobber \
   https://github.com/llvm/llvm-project/releases/download/llvmorg-14.0.1/llvm-project-14.0.1.src.tar.xz
 
 ### START STAGE2
 
 FROM ghcr.io/clangbuiltlinux/llvm-project:stage2 as prev_epoch
-FROM alpine:edge as stage_two
+FROM docker.io/alpine:edge as stage_two
 
 COPY --from=prev_epoch /usr/local/bin /usr/local/bin
 COPY --from=prev_epoch /usr/local/lib /usr/local/lib

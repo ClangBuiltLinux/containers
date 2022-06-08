@@ -1,9 +1,9 @@
-FROM alpine:edge AS source
+FROM docker.io/alpine:edge AS source
 RUN wget --no-clobber \
   https://github.com/llvm/llvm-project/releases/download/llvmorg-14.0.1/llvm-project-14.0.1.src.tar.xz
 
 # Stage one
-FROM alpine:edge AS stage_one
+FROM docker.io/alpine:edge AS stage_one
 
 COPY --from=source llvm-project-14.0.1.src.tar.xz /
 RUN tar xf llvm-project-14.0.1.src.tar.xz && \
@@ -65,7 +65,7 @@ RUN ninja -C ${LLVM_BUILD_DIR} install-llvm-ar
 ### START STAGE2
 
 # STAGE2 goal, build WITHOUT apk add
-FROM alpine:edge as stage_two
+FROM docker.io/alpine:edge as stage_two
 COPY --from=stage_one /usr/local/bin /usr/local/bin
 COPY --from=stage_one /usr/local/lib /usr/local/lib
 COPY --from=stage_one /usr/local/include /usr/local/include
