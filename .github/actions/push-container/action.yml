@@ -28,5 +28,6 @@ runs:
         username: ${{ inputs.username }}
         password: ${{ inputs.password }}
 
-    - run: |
+    - shell: bash
+      run: |
         docker push ${{ inputs.registry }}/${{ inputs.name }}:${{ inputs.tag }}
