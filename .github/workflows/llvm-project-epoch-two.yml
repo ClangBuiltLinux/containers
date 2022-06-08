@@ -27,8 +27,8 @@ jobs:
       - name: Test statically linked clang
         run: bash ci/test-clang.sh
 
-
-      - uses: ./.github/actions/push-container
+      - name: Push image to ghcr.io
+        uses: ./.github/actions/push-container
         if: ${{ github.repository_owner == 'ClangBuiltLinux' && github.event_name != 'pull_request' && github.ref_name == 'main' }}
         with:
           registry: ghcr.io
