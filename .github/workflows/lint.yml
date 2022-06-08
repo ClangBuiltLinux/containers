@@ -1,0 +1,14 @@
+# Runs several checks
+# * shellcheck for shell script correctness
+# * shfmt for shell script formatting consistency
+# * yapf for Python formatting consistency
+
+name: Lint checks
+on: [push, pull_request]
+jobs:
+  shellcheck:
+    uses: ClangBuiltLinux/actions-workflows/.github/workflows/shellcheck.yml@main
+  shfmt:
+    uses: ClangBuiltLinux/actions-workflows/.github/workflows/shfmt.yml@main
+  yapf:
+    uses: ClangBuiltLinux/actions-workflows/.github/workflows/yapf.yml@main

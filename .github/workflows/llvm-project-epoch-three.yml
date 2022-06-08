@@ -1,9 +1,9 @@
-name: llvm-project (epoch 2)
+name: llvm-project (epoch 3)
 
 on: workflow_dispatch
 jobs:
-  epoch2:
-    name: stage 2
+  epoch3:
+    name: stage 3
     runs-on: [self-hosted, x64]
     strategy:
       fail-fast: true
@@ -14,16 +14,19 @@ jobs:
       - name: Build and test llvm-project
         uses: ./.github/actions/build-test-llvm-project
         with:
-          file: Dockerfile.epoch2
+          file: Dockerfile.epoch3
           platforms: linux/amd64
-          tags: ghcr.io/clangbuiltlinux/llvm-project:stage2
+          tags: ghcr.io/clangbuiltlinux/llvm-project:stage3
 
-      - name: Push image to ghcr.io
-        uses: ./.github/actions/push-container
+      - name: Login to ghcr.io
         if: ${{ github.repository_owner == 'ClangBuiltLinux' && github.event_name != 'pull_request' && github.ref_name == 'main' }}
+        uses: docker/login-action@v2
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-          image: clangbuiltlinux/llvm-project
-          tag: stage2
+
+      - name: Push image to ghcr.io
+        if: ${{ github.repository_owner == 'ClangBuiltLinux' && github.event_name != 'pull_request' && github.ref_name == 'main' }}
+        run: |
+          docker push ghcr.io/clangbuiltlinux/llvm-project:stage3

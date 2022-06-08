@@ -1,0 +1,39 @@
+name: Build and test llvm-project
+description: Build and test an llvm-project container
+
+inputs:
+  file:
+    description: Dockerfile to build the container from
+    required: true
+  platforms:
+    description: Platforms to build the container for
+    required: true
+  tags:
+    description: Tags to use for the final container
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Build llvm-project
+      uses: docker/build-push-action@v3
+      with:
+        context: ./llvm-project
+        file: ./llvm-project/${{ inputs.file }}
+        load: true
+        platforms: ${{ inputs.platform }}
+        pull: true
+        tags: ${{ inputs.tags }}
+
+    - name: Test statically linked clang
+      shell: bash
+      run: ci/test-clang.sh ${{ inputs.tags }}
+
+    - name: Upload toolchain tarball
+      uses: actions/upload-artifact@v3
+      with:
+        if-no-files-found: error
+        path: toolchain.tar.zst
