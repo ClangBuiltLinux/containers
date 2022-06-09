@@ -2,6 +2,9 @@ name: Build and test llvm-project
 description: Build and test an llvm-project container
 
 inputs:
+  arch:
+    description: Architecture to build containers for
+    required: true
   file:
     description: Dockerfile to build the container from
     required: true
@@ -36,4 +39,5 @@ runs:
       uses: actions/upload-artifact@v3
       with:
         if-no-files-found: error
+        name: artifact-${{ inputs.arch }}
         path: toolchain.tar.zst

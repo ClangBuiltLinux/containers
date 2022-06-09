@@ -16,7 +16,7 @@ COPY --from=prev_epoch /usr/local/include /usr/local/include
 # symlinking nonsense at the start of other builds.
 RUN cd /usr/lib/ && \
   for library in libc++abi.so.1 libc++.a libc++abi.a libc++.so.1 libunwind.so.1 libunwind.a; \
-    do ln -s "/usr/local/lib/x86_64-alpine-linux-musl/${library}" . ; \
+    do ln -sv /usr/local/lib/$(uname -m)-alpine-linux-musl/${library} .; \
   done
 
 RUN apk add musl-dev
@@ -42,6 +42,7 @@ ARG LLVM_BUILD_DIR=llvm-project/llvm/build
 RUN cmake \
   -B ${LLVM_BUILD_DIR} \
   -C llvm-project/stage2.cmake \
+  -D LLVM_DEFAULT_TARGET_TRIPLE=$(clang -print-target-triple) \
   -S llvm-project/llvm \
   -G Ninja
 

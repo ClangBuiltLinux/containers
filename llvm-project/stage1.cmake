@@ -8,12 +8,6 @@ set(CMAKE_BUILD_TYPE "Release" CACHE STRING "")
 set(CMAKE_CXX_COMPILER "/usr/bin/clang++" CACHE FILEPATH "")
 set(CMAKE_C_COMPILER "/usr/bin/clang" CACHE FILEPATH "")
 
-# Set the default target triple to match the host.
-# TODO: passing in the value of $(clang -print-multiarch) causes failures.
-# It seems that alpine clang's default target triple is x86_64-linux-gnu.
-# Perhaps missing alpine in the triple causes some incompatibility?
-set(LLVM_DEFAULT_TARGET_TRIPLE "x86_64-alpine-linux-musl" CACHE STRING "")
-
 # Use Alpine's lld as the stage0 linker to link everything.
 set(LLVM_ENABLE_LLD ON CACHE BOOL "")
 
