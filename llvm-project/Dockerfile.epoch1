@@ -43,7 +43,7 @@ ARG LLVM_BUILD_DIR=llvm-project/llvm/build
 RUN cmake \
   -B ${LLVM_BUILD_DIR} \
   -C llvm-project/stage1.cmake \
-  -DLLVM_DEFAULT_TARGET_TRIPLE=$(clang -print-target-triple) \
+  -D LLVM_DEFAULT_TARGET_TRIPLE=$(clang -print-target-triple) \
   -S llvm-project/llvm \
   -G Ninja
 
@@ -119,7 +119,7 @@ ARG LLVM_BUILD_DIR=llvm-project/llvm/build
 RUN cmake \
   -B ${LLVM_BUILD_DIR} \
   -C llvm-project/stage2.cmake \
-  -DLLVM_DEFAULT_TARGET_TRIPLE=$(clang -print-target-triple) \
+  -D LLVM_DEFAULT_TARGET_TRIPLE=$(clang -print-target-triple) \
   -S llvm-project/llvm \
   -G Ninja
 
