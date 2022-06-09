@@ -9,7 +9,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - arch: arm64
+          - arch: aarch64
             os: [self-hosted, arm64]
             platforms: linux/arm64
           - arch: x86_64
@@ -23,9 +23,10 @@ jobs:
         uses: ./.github/actions/build-test-llvm-project
         with:
           arch: ${{ matrix.arch }}
+          build-args: BASE=ghcr.io/clangbuiltlinux/llvm-project:stage2-${{ matrix.arch }}
           file: Dockerfile.epoch2
           platforms: ${{ matrix.platforms }}
-          tags: ghcr.io/clangbuiltlinux/llvm-project:stage2
+          tags: ghcr.io/clangbuiltlinux/llvm-project:stage2-${{ matrix.arch }}
 
       - name: Login to ghcr.io
         if: ${{ github.repository_owner == 'ClangBuiltLinux' && github.event_name != 'pull_request' && github.ref_name == 'main' }}
@@ -38,4 +39,4 @@ jobs:
       - name: Push image to ghcr.io
         if: ${{ github.repository_owner == 'ClangBuiltLinux' && github.event_name != 'pull_request' && github.ref_name == 'main' }}
         run: |
-          docker push ghcr.io/clangbuiltlinux/llvm-project:stage2
+          docker push ghcr.io/clangbuiltlinux/llvm-project:stage2-${{ matrix.arch }}
