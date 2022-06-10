@@ -1,4 +1,4 @@
-ARG base=ghcr.io/clangbuiltlinux/llvm-project:stage2
+ARG BASE
 
 FROM docker.io/alpine:edge AS source
 RUN wget --no-verbose https://git.kernel.org/torvalds/t/linux-5.18-rc6.tar.gz
@@ -6,7 +6,7 @@ RUN wget --no-verbose https://musl.libc.org/releases/musl-1.2.3.tar.gz
 RUN wget --no-verbose https://zlib.net/zlib-1.2.12.tar.gz
 RUN wget --no-verbose https://github.com/llvm/llvm-project/releases/download/llvmorg-14.0.1/llvm-project-14.0.1.src.tar.xz
 
-FROM ${base} AS stage2
+FROM ${BASE} AS stage2
 FROM docker.io/alpine:edge AS stage3
 
 ### BEGIN STAGE3

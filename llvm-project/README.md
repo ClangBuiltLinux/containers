@@ -59,11 +59,11 @@ goal for stage 3.
 
 To play with this image, you can run:
 ```sh
-$ docker run -it ghcr.io/clangbuiltlinux/llvm-project:stage2 ash
+$ docker run -it ghcr.io/clangbuiltlinux/llvm-project:stage2-$(uname -m) ash
 ```
 To copy the statically linked clang binary out of it, you can run:
 ```
-$ docker create --name temp ghcr.io/clangbuiltlinux/llvm-project:stage2
+$ docker create --name temp ghcr.io/clangbuiltlinux/llvm-project:stage2-$(uname -m)
 $ docker cp temp:/usr/local/bin/clang-14 clang
 $ docker rm temp
 ```
