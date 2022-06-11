@@ -83,6 +83,7 @@ RUN ninja -C ${LLVM_BUILD_DIR} \
   install-llvm-ranlib \
   install-llvm-readelf \
   install-llvm-strip
+RUN ninja -C ${LLVM_BUILD_DIR} install-compiler-rt
 
 RUN apk del cmake ninja python3
 

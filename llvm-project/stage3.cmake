@@ -15,6 +15,30 @@ set(CMAKE_C_FLAGS "--sysroot=/sysroot" CACHE STRING "")
 # Statically link resulting executable.
 set(CMAKE_EXE_LINKER_FLAGS "-static -lc++abi" CACHE STRING "")
 
+# The compiler builtins are necessary.
+set(COMPILER_RT_BUILD_BUILTINS ON CACHE BOOL "")
+
+# GWP ASAN fails to build without libexecinfo-dev. Don't need it for stage3.
+set(COMPILER_RT_BUILD_GWP_ASAN OFF CACHE BOOL "")
+
+# Don't need libfuzzer, ever.
+set(COMPILER_RT_BUILD_LIBFUZZER OFF CACHE BOOL "")
+
+# Don't need memprof, ever.
+set(COMPILER_RT_BUILD_MEMPROF OFF CACHE BOOL "")
+
+# Don't need ORC, ever.
+set(COMPILER_RT_BUILD_ORC OFF CACHE BOOL "")
+
+# Explicitly enable profiling support. The implicit default is ON.
+set(COMPILER_RT_BUILD_PROFILE ON CACHE BOOL "")
+
+# Disable sanitizer support. Not necessary for stage3.
+set(COMPILER_RT_BUILD_SANITIZERS OFF CACHE BOOL "")
+
+# Don't need xray.
+set(COMPILER_RT_BUILD_XRAY OFF CACHE BOOL "")
+
 # Use libc++ from stage2.
 # TODO: is CMAKE_CXX_FLAGS still necessary if this is set?
 set(LLVM_ENABLE_LIBCXX ON CACHE BOOL "")
@@ -22,8 +46,8 @@ set(LLVM_ENABLE_LIBCXX ON CACHE BOOL "")
 # Use lld from stage2.
 set(LLVM_ENABLE_LLD ON CACHE BOOL "")
 
-# Just build clang and lld for now.
-set(LLVM_ENABLE_PROJECTS "clang;lld" CACHE STRING "")
+# Build clang, lld, and compiler-rt.
+set(LLVM_ENABLE_PROJECTS "clang;lld;compiler-rt" CACHE STRING "")
 
 # FORCE_ON causes the build to fail if zlib is not found in the environment
 # during configuration, rather than much later during link.
