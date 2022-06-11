@@ -35,5 +35,5 @@ clang: epoch3
 	$(DOCKER) create --name llvm-project $(IMAGE):stage3-$(HOST_ARCH)
 	$(DOCKER) cp llvm-project:/usr/local/bin/clang-14 clang
 
-test: clang
+test: epoch3
 	bash ../ci/test-clang.sh $(IMAGE):stage3-$(HOST_ARCH)
