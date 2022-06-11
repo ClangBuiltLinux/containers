@@ -19,8 +19,7 @@ epoch_cmd = \
 		$(if $(3),--build-arg BASE=$(3)) \
 		--file Dockerfile.$(1) \
 		--tag $(2) \
-		. && \
-	bash ../ci/test-clang.sh $(2)
+		.
 
 epoch1:
 	$(call epoch_cmd,$@,$(IMAGE):stage2-$(HOST_ARCH))
@@ -35,3 +34,6 @@ clang: epoch3
 	$(DOCKER) rm llvm-project || true
 	$(DOCKER) create --name llvm-project $(IMAGE):stage3-$(HOST_ARCH)
 	$(DOCKER) cp llvm-project:/usr/local/bin/clang-14 clang
+
+test: epoch3
+	bash ../ci/test-clang.sh $(IMAGE):stage3-$(HOST_ARCH)
