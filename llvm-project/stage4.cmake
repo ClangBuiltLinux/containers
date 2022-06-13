@@ -61,7 +61,7 @@ set(LLVM_STATIC_LINK_CXX_STDLIB "1" CACHE STRING "")
 
 # Just build stage3 to target the host. It's not the end product, so it won't
 # be able to target all of the kernel targets we can build.
-set(LLVM_TARGETS_TO_BUILD "host;" CACHE STRING "")
+set(LLVM_TARGETS_TO_BUILD "AArch64;ARM;Hexagon;Mips;PowerPC;RISCV;SystemZ;X86" CACHE STRING "")
 
 # Necessary to avoid warnings about counter overflow.
 set(LLVM_VP_COUNTERS_PER_SITE "6" CACHE STRING "")
