@@ -34,9 +34,9 @@ epoch4:
 	$(call epoch_cmd,$@,$(IMAGE):stage4-$(HOST_ARCH),$(IMAGE):stage3-$(HOST_ARCH))
 
 clang: epoch4
-	$(DOCKER) rm llvm-project || true
 	$(DOCKER) create --name llvm-project $(IMAGE):stage4-$(HOST_ARCH)
 	$(DOCKER) cp llvm-project:/usr/local/bin/clang-14 clang
+	$(DOCKER) rm llvm-project
 
 test: epoch4
 	bash ../ci/test-clang.sh $(IMAGE):stage4-$(HOST_ARCH)
