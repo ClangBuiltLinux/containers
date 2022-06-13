@@ -9,6 +9,8 @@ fi
 
 CC=/repo/toolchain/bin/clang
 CXX=/repo/toolchain/bin/clang++
+LLVM_PROFILE_FILE=foo.profraw
+LLVM_PROFILE_VERBOSE=1
 hello_c=/repo/llvm-project/hello.c
 hello_cpp=/repo/llvm-project/hello.cpp
 hello_exe=/tmp/hello
