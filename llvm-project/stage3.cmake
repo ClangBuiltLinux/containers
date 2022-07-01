@@ -13,7 +13,7 @@ set(CMAKE_CXX_FLAGS "--sysroot=/sysroot" CACHE STRING "")
 set(CMAKE_C_FLAGS "--sysroot=/sysroot" CACHE STRING "")
 
 # Statically link resulting executable.
-set(CMAKE_EXE_LINKER_FLAGS "-static -lc++abi" CACHE STRING "")
+set(CMAKE_EXE_LINKER_FLAGS "-static -lc++abi -ljemalloc" CACHE STRING "")
 
 # The compiler builtins are necessary.
 set(COMPILER_RT_BUILD_BUILTINS ON CACHE BOOL "")

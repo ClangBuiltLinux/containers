@@ -5,6 +5,7 @@ RUN wget --no-verbose https://git.kernel.org/torvalds/t/linux-5.18-rc6.tar.gz
 RUN wget --no-verbose https://musl.libc.org/releases/musl-1.2.3.tar.gz
 RUN wget --no-verbose https://zlib.net/zlib-1.2.12.tar.gz
 RUN wget --no-verbose https://github.com/llvm/llvm-project/releases/download/llvmorg-14.0.1/llvm-project-14.0.1.src.tar.xz
+RUN wget --no-verbose https://github.com/jemalloc/jemalloc/releases/download/5.3.0/jemalloc-5.3.0.tar.bz2
 
 FROM ${BASE} AS stage2
 FROM docker.io/alpine:edge AS stage3
@@ -58,6 +59,19 @@ RUN cd ${ZLIB_DIR} && \
 RUN apk add make
 RUN make -C ${ZLIB_DIR} -j$(nproc)
 RUN make -C ${ZLIB_DIR} -j$(nproc) install
+RUN apk del make
+
+### Jemalloc
+COPY --from=source jemalloc-5.3.0.tar.bz2 .
+RUN tar xf jemalloc-5.3.0.tar.bz2
+ARG JEMALLOC_DIR=jemalloc-5.3.0/build
+RUN mkdir -p ${JEMALLOC_DIR}
+RUN cd ${JEMALLOC_DIR} && \
+  CC=clang AR=llvm-ar NM=llvm-nm CPPFLAGS=${SYSROOT} LDFLAGS=${SYSROOT} \
+  ../configure --disable-libdl --prefix=/usr
+RUN apk add make
+RUN make -C ${JEMALLOC_DIR} -j$(nproc) build_lib_static
+RUN make -C ${JEMALLOC_DIR} -j$(nproc) DESTDIR=/sysroot install_lib_static
 RUN apk del make
 
 ### LLVM
