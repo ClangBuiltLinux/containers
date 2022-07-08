@@ -1,0 +1,300 @@
+ARG BASE
+
+FROM alpine:edge AS source
+RUN wget --no-verbose https://git.kernel.org/torvalds/t/linux-5.18-rc6.tar.gz
+RUN wget --no-verbose https://musl.libc.org/releases/musl-1.2.3.tar.gz
+RUN wget --no-verbose https://zlib.net/zlib-1.2.12.tar.gz
+RUN wget --no-verbose https://github.com/llvm/llvm-project/releases/download/llvmorg-14.0.1/llvm-project-14.0.1.src.tar.xz
+
+FROM ${BASE} AS stage3
+FROM alpine:edge AS stage4
+
+### BEGIN STAGE4
+
+COPY --from=stage3 /usr/local/bin /usr/local/bin
+COPY --from=stage3 /usr/local/lib /usr/local/lib
+COPY --from=stage3 /usr/local/include /usr/local/include
+RUN cd /usr/lib/ && \
+  for library in libc++abi.so.1 libc++.a libc++abi.a libc++.so.1 libunwind.so.1 libunwind.a; \
+    do ln -s "/usr/local/lib/x86_64-alpine-linux-musl/${library}" . ; \
+  done
+
+### Linux
+COPY --from=source linux-5.18-rc6.tar.gz .
+RUN tar xf linux-5.18-rc6.tar.gz
+RUN apk add make musl-dev rsync
+RUN make -C linux-5.18-rc6 INSTALL_HDR_PATH=/sysroot/usr LLVM=1 -j$(nproc) headers_install
+RUN apk del rsync musl-dev make
+
+### Musl
+COPY --from=source musl-1.2.3.tar.gz .
+RUN tar xf musl-1.2.3.tar.gz
+ARG MUSL_DIR=musl-1.2.3/build
+RUN mkdir -p ${MUSL_DIR}
+RUN cd ${MUSL_DIR} && \
+  CC=clang AR=llvm-ar RANLIB=llvm-ranlib \
+  ../configure --prefix=/usr --syslibdir=/usr/lib
+RUN apk add make
+RUN make -C ${MUSL_DIR} -j$(nproc)
+RUN make -C ${MUSL_DIR} -j$(nproc) DESTDIR=/sysroot install-headers
+RUN make -C ${MUSL_DIR} -j$(nproc) DESTDIR=/sysroot install-libs
+RUN apk del make
+
+# Pause for a quick sanity check
+COPY hello.c hello.cpp /
+ARG SYSROOT=--sysroot=/sysroot
+RUN clang ${SYSROOT} hello.c && ./a.out && \
+  clang ${SYSROOT} hello.c -static && ./a.out && \
+  clang++ ${SYSROOT} hello.cpp && ./a.out && \
+  clang++ ${SYSROOT} hello.cpp -static -lc++abi && ./a.out
+
+### Zlib
+COPY --from=source zlib-1.2.12.tar.gz .
+RUN tar xf zlib-1.2.12.tar.gz
+ARG ZLIB_DIR=zlib-1.2.12/build
+RUN mkdir -p ${ZLIB_DIR}
+RUN cd ${ZLIB_DIR} && \
+  CC="clang ${SYSROOT}" AR=llvm-ar ../configure --prefix=/sysroot/usr
+RUN apk add make
+RUN make -C ${ZLIB_DIR} -j$(nproc)
+RUN make -C ${ZLIB_DIR} -j$(nproc) install
+RUN apk del make
+
+### LLVM
+COPY --from=source llvm-project-14.0.1.src.tar.xz .
+RUN tar xf llvm-project-14.0.1.src.tar.xz && \
+  mv llvm-project-14.0.1.src llvm-project
+RUN apk add cmake ninja python3
+COPY stage4.cmake llvm-project/.
+ARG LLVM_BUILD_DIR=llvm-project/llvm/build
+RUN cmake \
+  -B ${LLVM_BUILD_DIR} \
+  -C llvm-project/stage4.cmake \
+  -D LLVM_DEFAULT_TARGET_TRIPLE=$(clang -print-target-triple) \
+  -S llvm-project/llvm \
+  -G Ninja
+RUN ninja -C ${LLVM_BUILD_DIR} install-clang install-lld
+RUN ninja -C ${LLVM_BUILD_DIR} install-clang-resource-headers
+RUN ninja -C ${LLVM_BUILD_DIR} \
+  install-llvm-ar \
+  install-llvm-nm \
+  install-llvm-objcopy \
+  install-llvm-objdump \
+  install-llvm-ranlib \
+  install-llvm-readelf \
+  install-llvm-strip
+RUN ninja -C ${LLVM_BUILD_DIR} install-compiler-rt
+RUN ninja -C ${LLVM_BUILD_DIR} install-llvm-profdata
+
+RUN apk del cmake ninja python3
+
+# Final test
+RUN llvm-readelf -p .comment $(which clang) | grep -e clang -e LLD
+RUN llvm-readelf -p .comment $(which clang) | grep -v GCC
+
+# Throw away profiles from building LLVM itself.
+RUN find ${LLVM_BUILD_DIR} -name \*.profraw | xargs rm
+
+### Start doing kernel builds
+# TODO: objtool needs libelf.h and gelf.h? elfutils-dev is the alpine package.
+RUN apk add make flex bison
+ARG arch=arm
+RUN ARCH=${arch} HOSTCFLAGS=${SYSROOT} HOSTLDFLAGS=${SYSROOT} \
+      make -C linux-5.18-rc6 LLVM=1 -s -j$(nproc) allnoconfig all && \
+    llvm-profdata merge --output=${arch}.profdata.prof \
+      $(find ${LLVM_BUILD_DIR} -name \*.profraw) && \
+    find ${LLVM_BUILD_DIR} -name \*.profraw | xargs rm
+
+ARG arch=arm64
+RUN ARCH=${arch} HOSTCFLAGS=${SYSROOT} HOSTLDFLAGS=${SYSROOT} \
+      make -C linux-5.18-rc6 LLVM=1 -s -j$(nproc) allnoconfig all && \
+    llvm-profdata merge --output=${arch}.profdata.prof \
+      $(find ${LLVM_BUILD_DIR} -name \*.profraw) && \
+    find ${LLVM_BUILD_DIR} -name \*.profraw | xargs rm
+
+ARG arch=hexagon
+RUN ARCH=${arch} HOSTCFLAGS=${SYSROOT} HOSTLDFLAGS=${SYSROOT} \
+      make -C linux-5.18-rc6 LLVM=1 -s -j$(nproc) allnoconfig all && \
+    llvm-profdata merge --output=${arch}.profdata.prof \
+      $(find ${LLVM_BUILD_DIR} -name \*.profraw) && \
+    find ${LLVM_BUILD_DIR} -name \*.profraw | xargs rm
+
+# Mips needs bash if building all targets.
+ARG arch=mips
+RUN ARCH=${arch} HOSTCFLAGS=${SYSROOT} HOSTLDFLAGS=${SYSROOT} \
+      make -C linux-5.18-rc6 LLVM=1 -s -j$(nproc) allnoconfig vmlinux && \
+    llvm-profdata merge --output=${arch}.profdata.prof \
+      $(find ${LLVM_BUILD_DIR} -name \*.profraw) && \
+    find ${LLVM_BUILD_DIR} -name \*.profraw | xargs rm
+
+# powernv_defconfig needs find -printf to work. find in busybox in alpine
+# doesn't support that flag.
+ARG arch=powerpc
+RUN ARCH=${arch} HOSTCFLAGS=${SYSROOT} HOSTLDFLAGS=${SYSROOT} \
+      make -C linux-5.18-rc6 LLVM=1 -s -j$(nproc) allnoconfig vmlinux && \
+    llvm-profdata merge --output=${arch}.profdata.prof \
+      $(find ${LLVM_BUILD_DIR} -name \*.profraw) && \
+    find ${LLVM_BUILD_DIR} -name \*.profraw | xargs rm
+
+# riscv requires perl to build
+RUN apk add perl findutils
+ARG arch=riscv
+RUN ARCH=${arch} HOSTCFLAGS=${SYSROOT} HOSTLDFLAGS=${SYSROOT} \
+      make -C linux-5.18-rc6 LLVM=1 -s -j$(nproc) defconfig vmlinux && \
+    llvm-profdata merge --output=${arch}.profdata.prof \
+      $(find ${LLVM_BUILD_DIR} -name \*.profraw) && \
+    find ${LLVM_BUILD_DIR} -name \*.profraw | xargs rm
+RUN apk del perl findutils
+
+# s390 needs CC=clang, but Alpine does not package GNU binutils for s390 in
+# main, so we need to fetch it from testing.
+RUN apk add binutils-s390x --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing/
+# We did not build openssl-dev or elfutils-dev, so hack them into the sysroot.
+# Don't reuse the sysroot from stage4!
+# s390 needs bash and GNU find.
+RUN apk add openssl openssl-dev python3 elfutils-dev bash findutils
+RUN \
+  ln -s /usr/include/gelf.h /sysroot/usr/include/. && \
+  ln -s /usr/include/libelf.h /sysroot/usr/include/. && \
+  ln -s /usr/lib/libelf.so /sysroot/usr/lib/. && \
+  ln -s /usr/include/openssl/ /sysroot/usr/include/. && \
+  ln -s /usr/lib/libcrypto.so /sysroot/usr/lib/.
+# bpf/resolve_btfids doesn't respect HOSTCFLAGS
+RUN cp -r /sysroot/usr/include/ /usr/local/
+# TODO: something in the s390 build isn't respecting HOSTCC.
+RUN \
+  ln -s $(which clang) /usr/local/bin/gcc && \
+  ln -s $(which clang) /usr/local/bin/s390x-alpine-linux-musl-gcc
+
+ARG arch=s390
+#ARCH=s390 CROSS_COMPILE=s390x-linux-gnu- make CC=clang -j72 defconfig
+RUN ARCH=${arch} HOSTCFLAGS=${SYSROOT} HOSTLDFLAGS=${SYSROOT} \
+      CROSS_COMPILE=s390x-alpine-linux-musl- \
+      CC=clang LLVM_IAS=0 \
+      make -C linux-5.18-rc6 -s -j$(nproc) defconfig
+RUN cd linux-5.18-rc6 && \
+  ./scripts/config -d DEBUG_INFO_BTF
+RUN ARCH=${arch} HOSTCFLAGS=${SYSROOT} HOSTLDFLAGS=${SYSROOT} \
+      CROSS_COMPILE=s390x-alpine-linux-musl- \
+      CC=clang LLVM_IAS=0 \
+      make -C linux-5.18-rc6 -s -j$(nproc) vmlinux
+RUN llvm-profdata merge --output=${arch}.profdata.prof \
+      $(find ${LLVM_BUILD_DIR} -name \*.profraw) && \
+    find ${LLVM_BUILD_DIR} -name \*.profraw | xargs rm
+# Leave openssl-dev and elfutils-dev since we have symlinks to them that the
+# x86 build will use.
+RUN apk del binutils-s390x openssl bash findutils
+
+# Objtool on x86 diff from diffutils (BusyBox diff doesn't support -I used in
+# tools/objtool/sync-check.sh).
+RUN apk add diffutils findutils
+# Objtool on x86 requires libelf (but we already did this above for s390).
+#RUN apk add elfutils-dev openssl-dev
+#### SYSROOT POISON
+#RUN \
+  #ln -s /usr/include/libelf.h /sysroot/usr/include/. && \
+  #ln -s /usr/include/gelf.h /sysroot/usr/include/. && \
+  #ln -s /usr/lib/libelf.so /sysroot/usr/lib/. && \
+  #ln -s /usr/include/openssl /sysroot/usr/include/. && \
+  #ln -s /usr/lib/libcrypto.so /sysroot/usr/lib/.
+#### SYSROOT POISON
+#### Objtool doesn't respect HOSTCFLAGS
+#RUN cp -r /sysroot/usr/include/ /usr/local/
+ARG arch=x86_64
+RUN ARCH=${arch} HOSTCFLAGS=${SYSROOT} HOSTLDFLAGS=${SYSROOT} \
+    KBUILDCFLAGS="-I /sysroot/usr/include" \
+      make -C linux-5.18-rc6 LLVM=1 -s -j$(nproc) V=1 defconfig vmlinux && \
+    llvm-profdata merge --output=${arch}.profdata.prof \
+      $(find ${LLVM_BUILD_DIR} -name \*.profraw) && \
+    find ${LLVM_BUILD_DIR} -name \*.profraw | xargs rm
+#RUN apk del elfutils-dev openssl-dev diffutils
+RUN apk del diffutils findutils
+
+RUN llvm-profdata merge --output=profdata.prof \
+  $(find . -maxdepth 1 -name \*.profdata.prof)
+
+### END STAGE4
+### BEGIN STAGE5
+FROM alpine:edge AS stage5
+
+COPY --from=stage3 /usr/local/bin /usr/local/bin
+COPY --from=stage3 /usr/local/lib /usr/local/lib
+COPY --from=stage3 /usr/local/include /usr/local/include
+RUN cd /usr/lib/ && \
+  for library in libc++abi.so.1 libc++.a libc++abi.a libc++.so.1 libunwind.so.1 libunwind.a; \
+    do ln -s "/usr/local/lib/x86_64-alpine-linux-musl/${library}" . ; \
+  done
+
+### Linux
+COPY --from=source linux-5.18-rc6.tar.gz .
+RUN tar xf linux-5.18-rc6.tar.gz
+RUN apk add make musl-dev rsync
+RUN make -C linux-5.18-rc6 INSTALL_HDR_PATH=/sysroot/usr LLVM=1 -j$(nproc) headers_install
+RUN apk del rsync musl-dev make
+
+### Musl
+COPY --from=source musl-1.2.3.tar.gz .
+RUN tar xf musl-1.2.3.tar.gz
+ARG MUSL_DIR=musl-1.2.3/build
+RUN mkdir -p ${MUSL_DIR}
+RUN cd ${MUSL_DIR} && \
+  CC=clang AR=llvm-ar RANLIB=llvm-ranlib \
+  ../configure --prefix=/usr --syslibdir=/usr/lib
+RUN apk add make
+RUN make -C ${MUSL_DIR} -j$(nproc)
+RUN make -C ${MUSL_DIR} -j$(nproc) DESTDIR=/sysroot install-headers
+RUN make -C ${MUSL_DIR} -j$(nproc) DESTDIR=/sysroot install-libs
+RUN apk del make
+
+# Pause for a quick sanity check
+COPY hello.c hello.cpp /
+ARG SYSROOT=--sysroot=/sysroot
+RUN clang ${SYSROOT} hello.c && ./a.out && \
+  clang ${SYSROOT} hello.c -static && ./a.out && \
+  clang++ ${SYSROOT} hello.cpp && ./a.out && \
+  clang++ ${SYSROOT} hello.cpp -static -lc++abi && ./a.out
+
+### Zlib
+COPY --from=source zlib-1.2.12.tar.gz .
+RUN tar xf zlib-1.2.12.tar.gz
+ARG ZLIB_DIR=zlib-1.2.12/build
+RUN mkdir -p ${ZLIB_DIR}
+RUN cd ${ZLIB_DIR} && \
+  CC="clang ${SYSROOT}" AR=llvm-ar ../configure --prefix=/sysroot/usr
+RUN apk add make
+RUN make -C ${ZLIB_DIR} -j$(nproc)
+RUN make -C ${ZLIB_DIR} -j$(nproc) install
+RUN apk del make
+
+### LLVM
+COPY --from=source llvm-project-14.0.1.src.tar.xz .
+RUN tar xf llvm-project-14.0.1.src.tar.xz && \
+  mv llvm-project-14.0.1.src llvm-project
+RUN apk add cmake ninja python3
+COPY stage5.cmake llvm-project/.
+ARG LLVM_BUILD_DIR=llvm-project/llvm/build
+RUN cmake \
+  -B ${LLVM_BUILD_DIR} \
+  -C llvm-project/stage5.cmake \
+  -D LLVM_DEFAULT_TARGET_TRIPLE=$(clang -print-target-triple) \
+  -S llvm-project/llvm \
+  -G Ninja
+RUN ninja -C ${LLVM_BUILD_DIR} clang-tblgen
+RUN ninja -C ${LLVM_BUILD_DIR} llvm-tblgen
+RUN ninja -C ${LLVM_BUILD_DIR} clang
+#RUN ninja -C ${LLVM_BUILD_DIR} install-clang install-lld
+#RUN ninja -C ${LLVM_BUILD_DIR} install-clang-resource-headers
+#RUN ninja -C ${LLVM_BUILD_DIR} \
+  #install-llvm-ar \
+  #install-llvm-nm \
+  #install-llvm-objcopy \
+  #install-llvm-objdump \
+  #install-llvm-ranlib \
+  #install-llvm-readelf \
+  #install-llvm-strip
+
+#RUN apk del cmake ninja python3
+
+# Final test
+#RUN llvm-readelf -p .comment $(which clang) | grep -e clang -e LLD
+#RUN llvm-readelf -p .comment $(which clang) | grep -v GCC

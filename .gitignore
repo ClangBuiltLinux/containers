@@ -1,4 +1,5 @@
 *.swp
+*.profraw
 
 llvm-project/llvm-project-*
 llvm-project/clang
