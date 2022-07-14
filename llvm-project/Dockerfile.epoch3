@@ -106,8 +106,6 @@ RUN cmake \
   -S llvm-project/llvm \
   -D CMAKE_EXE_LINKER_FLAGS="-static -lc++abi -ljemalloc -lllvmlibc-sparse -Wl,--allow-multiple-definition" \
   -G Ninja
-#RUN ninja -C ${LLVM_BUILD_DIR} llvm-tblgen
-#RUN llvm-objdump -dr --disassemble-symbols=strlen llvm-project/llvm/build/bin/llvm-tblgen
 RUN ninja -C ${LLVM_BUILD_DIR} install-clang install-lld
 RUN ninja -C ${LLVM_BUILD_DIR} install-clang-resource-headers
 RUN ninja -C ${LLVM_BUILD_DIR} \
