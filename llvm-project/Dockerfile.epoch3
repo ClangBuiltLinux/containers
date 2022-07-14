@@ -80,6 +80,11 @@ RUN tar xf llvm-project-14.0.1.src.tar.xz && \
   mv llvm-project-14.0.1.src llvm-project
 RUN apk add cmake ninja python3
 COPY stage3.cmake llvm-project/.
+COPY 0001-libc-Fix-build-when-__FE_DENORM-is-defined.patch llvm-project/.
+RUN apk add patch
+RUN cd llvm-project && \
+  patch -p1 < 0001-libc-Fix-build-when-__FE_DENORM-is-defined.patch
+RUN apk del patch
 ARG LLVM_BUILD_DIR=llvm-project/llvm/build
 RUN cmake \
   -B ${LLVM_BUILD_DIR} \
@@ -87,6 +92,22 @@ RUN cmake \
   -D LLVM_DEFAULT_TARGET_TRIPLE=$(clang -print-target-triple) \
   -S llvm-project/llvm \
   -G Ninja
+
+RUN ninja -C ${LLVM_BUILD_DIR} llvmlibc
+COPY build_sparse_libc.sh ${LLVM_BUILD_DIR}/.
+RUN cd ${LLVM_BUILD_DIR} && \
+  ./build_sparse_libc.sh && \
+  mv libllvmlibc-sparse.a /sysroot/usr/lib/.
+
+RUN cmake \
+  -B ${LLVM_BUILD_DIR} \
+  -C llvm-project/stage3.cmake \
+  -D LLVM_DEFAULT_TARGET_TRIPLE=$(clang -print-target-triple) \
+  -S llvm-project/llvm \
+  -D CMAKE_EXE_LINKER_FLAGS="-static -lc++abi -ljemalloc -lllvmlibc-sparse -Wl,--allow-multiple-definition" \
+  -G Ninja
+#RUN ninja -C ${LLVM_BUILD_DIR} llvm-tblgen
+#RUN llvm-objdump -dr --disassemble-symbols=strlen llvm-project/llvm/build/bin/llvm-tblgen
 RUN ninja -C ${LLVM_BUILD_DIR} install-clang install-lld
 RUN ninja -C ${LLVM_BUILD_DIR} install-clang-resource-headers
 RUN ninja -C ${LLVM_BUILD_DIR} \

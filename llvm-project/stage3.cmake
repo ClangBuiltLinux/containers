@@ -47,7 +47,7 @@ set(LLVM_ENABLE_LIBCXX ON CACHE BOOL "")
 set(LLVM_ENABLE_LLD ON CACHE BOOL "")
 
 # Build clang, lld, and compiler-rt.
-set(LLVM_ENABLE_PROJECTS "clang;lld;compiler-rt" CACHE STRING "")
+set(LLVM_ENABLE_PROJECTS "clang;lld;compiler-rt;libc" CACHE STRING "")
 
 # FORCE_ON causes the build to fail if zlib is not found in the environment
 # during configuration, rather than much later during link.
