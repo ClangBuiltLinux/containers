@@ -2,6 +2,7 @@ FROM docker.io/archlinux:base
 
 RUN pacman -Syyu --noconfirm && \
     pacman -S --noconfirm \
+        binutils \
         git \
         python \
         python-yaml \
