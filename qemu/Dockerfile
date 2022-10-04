@@ -1,7 +1,6 @@
 FROM docker.io/archlinux:base
 
-RUN sed -i "/\[testing\]/,/Include/"'s/^#//' /etc/pacman.conf && \
-    pacman -Syyu --noconfirm && \
+RUN pacman -Syyu --noconfirm && \
     pacman -S --noconfirm \
         binutils \
         git \
