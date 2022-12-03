@@ -10,8 +10,7 @@ import subprocess
 
 def parse_parameters():
     parser = argparse.ArgumentParser(
-        description=
-        "Install a Fedora virtual machine using libvirt and virt-install.",
+        description="Install a Fedora virtual machine using virt-install.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument("-c",
