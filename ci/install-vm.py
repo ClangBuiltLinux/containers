@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3  # pylint: disable=invalid-name
 
 import argparse
 import os
@@ -10,8 +10,7 @@ import subprocess
 
 def parse_parameters():
     parser = argparse.ArgumentParser(
-        description=
-        "Install a Fedora virtual machine using libvirt and virt-install.",
+        description="Install a Fedora virtual machine using virt-install.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument("-c",
@@ -42,8 +41,7 @@ def check_requirements():
     for command in ["virsh", "virt-install"]:
         if not shutil.which(command):
             raise RuntimeError(
-                "{} could not be found! Install and set up libvirt?".format(
-                    command))
+                f"{command} could not be found! Install and set up libvirt?")
 
     if not Path("/dev/kvm").exists():
         raise RuntimeError(
@@ -63,20 +61,19 @@ def main():
         cpu = "host"
         console = "console=ttyS0"
     else:
-        raise RuntimeError("This script does not support {}".format(host_arch))
+        raise RuntimeError(f"This script does not support {host_arch}")
 
     virt_install = ["virt-install"]
     virt_install += ["--boot", "uefi"]
     virt_install += ["--connect", "qemu:///system"]
     virt_install += ["--console", "pty,target_type=serial"]
     virt_install += ["--cpu", cpu]
-    virt_install += ["--disk", "size={},format=qcow2".format(args.size)]
+    virt_install += ["--disk", f"size{args.size},format=qcow2"]
     virt_install += ["--extra-args", console]
     virt_install += ["--graphics", "none"]
     virt_install += [
         "--location",
-        "https://download.fedoraproject.org/pub/fedora/linux/releases/36/Server/{}/os"
-        .format(host_arch)
+        f"https://download.fedoraproject.org/pub/fedora/linux/releases/36/Server/{host_arch}/os"
     ]
     # libvirt expects MiB; str cast here and '--vcpus' is to avoid:
     # TypeError: expected str, bytes or os.PathLike object, not int
