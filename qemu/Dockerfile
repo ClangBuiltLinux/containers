@@ -8,6 +8,7 @@ RUN pacman -Syyu --noconfirm && \
         python-yaml \
         qemu-system-aarch64 \
         qemu-system-arm \
+        qemu-system-loongarch64 \
         qemu-system-mips \
         qemu-system-ppc \
         qemu-system-riscv \
