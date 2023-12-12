@@ -1,9 +1,9 @@
-FROM alpine:edge AS source
+FROM docker.io/alpine:edge AS source
 RUN wget --no-clobber \
   https://github.com/llvm/llvm-project/releases/download/llvmorg-14.0.1/llvm-project-14.0.1.src.tar.xz
 
 # Stage one
-FROM alpine:edge AS stage_one
+FROM docker.io/alpine:edge AS stage_one
 
 COPY --from=source llvm-project-14.0.1.src.tar.xz /
 RUN tar xf llvm-project-14.0.1.src.tar.xz && \
@@ -43,6 +43,7 @@ ARG LLVM_BUILD_DIR=llvm-project/llvm/build
 RUN cmake \
   -B ${LLVM_BUILD_DIR} \
   -C llvm-project/stage1.cmake \
+  -D LLVM_DEFAULT_TARGET_TRIPLE=$(clang -print-target-triple) \
   -S llvm-project/llvm \
   -G Ninja
 
@@ -65,7 +66,7 @@ RUN ninja -C ${LLVM_BUILD_DIR} install-llvm-ar
 ### START STAGE2
 
 # STAGE2 goal, build WITHOUT apk add
-FROM alpine:edge as stage_two
+FROM docker.io/alpine:edge as stage_two
 COPY --from=stage_one /usr/local/bin /usr/local/bin
 COPY --from=stage_one /usr/local/lib /usr/local/lib
 COPY --from=stage_one /usr/local/include /usr/local/include
@@ -76,7 +77,7 @@ COPY hello.c hello.cpp /
 # symlinking nonsense at the start of other builds.
 RUN cd /usr/lib/ && \
   for library in libc++abi.so.1 libc++.a libc++abi.a libc++.so.1 libunwind.so.1 libunwind.a; \
-    do ln -s "/usr/local/lib/x86_64-alpine-linux-musl/${library}" . ; \
+    do ln -sv /usr/local/lib/$(uname -m)-alpine-linux-musl/${library} .; \
   done
 
 # The stage 1 build of clang/lld/other binaries still depends on libstdc++.
@@ -118,6 +119,7 @@ ARG LLVM_BUILD_DIR=llvm-project/llvm/build
 RUN cmake \
   -B ${LLVM_BUILD_DIR} \
   -C llvm-project/stage2.cmake \
+  -D LLVM_DEFAULT_TARGET_TRIPLE=$(clang -print-target-triple) \
   -S llvm-project/llvm \
   -G Ninja
 

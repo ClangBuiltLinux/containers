@@ -1,13 +1,14 @@
-ARG base=ghcr.io/clangbuiltlinux/llvm-project:stage2
+ARG BASE
 
-FROM alpine:edge AS source
+FROM docker.io/alpine:edge AS source
 RUN wget --no-verbose https://git.kernel.org/torvalds/t/linux-5.18-rc6.tar.gz
 RUN wget --no-verbose https://musl.libc.org/releases/musl-1.2.3.tar.gz
 RUN wget --no-verbose https://zlib.net/zlib-1.2.12.tar.gz
 RUN wget --no-verbose https://github.com/llvm/llvm-project/releases/download/llvmorg-14.0.1/llvm-project-14.0.1.src.tar.xz
+RUN wget --no-verbose https://github.com/jemalloc/jemalloc/releases/download/5.3.0/jemalloc-5.3.0.tar.bz2
 
-FROM ${base} AS stage2
-FROM alpine:edge AS stage3
+FROM ${BASE} AS stage2
+FROM docker.io/alpine:edge AS stage3
 
 ### BEGIN STAGE3
 
@@ -16,7 +17,7 @@ COPY --from=stage2 /usr/local/lib /usr/local/lib
 COPY --from=stage2 /usr/local/include /usr/local/include
 RUN cd /usr/lib/ && \
   for library in libc++abi.so.1 libc++.a libc++abi.a libc++.so.1 libunwind.so.1 libunwind.a; \
-    do ln -s "/usr/local/lib/x86_64-alpine-linux-musl/${library}" . ; \
+    do ln -s "/usr/local/lib/$(uname -m)-alpine-linux-musl/${library}" . ; \
   done
 
 ### Linux
@@ -60,17 +61,50 @@ RUN make -C ${ZLIB_DIR} -j$(nproc)
 RUN make -C ${ZLIB_DIR} -j$(nproc) install
 RUN apk del make
 
+### Jemalloc
+COPY --from=source jemalloc-5.3.0.tar.bz2 .
+RUN tar xf jemalloc-5.3.0.tar.bz2
+ARG JEMALLOC_DIR=jemalloc-5.3.0/build
+RUN mkdir -p ${JEMALLOC_DIR}
+RUN cd ${JEMALLOC_DIR} && \
+  CC=clang AR=llvm-ar NM=llvm-nm CPPFLAGS=${SYSROOT} LDFLAGS=${SYSROOT} \
+  ../configure --disable-libdl --prefix=/usr
+RUN apk add make
+RUN make -C ${JEMALLOC_DIR} -j$(nproc) build_lib_static
+RUN make -C ${JEMALLOC_DIR} -j$(nproc) DESTDIR=/sysroot install_lib_static
+RUN apk del make
+
 ### LLVM
 COPY --from=source llvm-project-14.0.1.src.tar.xz .
 RUN tar xf llvm-project-14.0.1.src.tar.xz && \
   mv llvm-project-14.0.1.src llvm-project
 RUN apk add cmake ninja python3
 COPY stage3.cmake llvm-project/.
+COPY 0001-libc-Fix-build-when-__FE_DENORM-is-defined.patch llvm-project/.
+RUN apk add patch
+RUN cd llvm-project && \
+  patch -p1 < 0001-libc-Fix-build-when-__FE_DENORM-is-defined.patch
+RUN apk del patch
 ARG LLVM_BUILD_DIR=llvm-project/llvm/build
 RUN cmake \
   -B ${LLVM_BUILD_DIR} \
   -C llvm-project/stage3.cmake \
+  -D LLVM_DEFAULT_TARGET_TRIPLE=$(clang -print-target-triple) \
   -S llvm-project/llvm \
+  -G Ninja
+
+RUN ninja -C ${LLVM_BUILD_DIR} llvmlibc
+COPY build_sparse_libc.sh ${LLVM_BUILD_DIR}/.
+RUN cd ${LLVM_BUILD_DIR} && \
+  ./build_sparse_libc.sh && \
+  mv libllvmlibc-sparse.a /sysroot/usr/lib/.
+
+RUN cmake \
+  -B ${LLVM_BUILD_DIR} \
+  -C llvm-project/stage3.cmake \
+  -D LLVM_DEFAULT_TARGET_TRIPLE=$(clang -print-target-triple) \
+  -S llvm-project/llvm \
+  -D CMAKE_EXE_LINKER_FLAGS="-static -lc++abi -ljemalloc -lllvmlibc-sparse -Wl,--allow-multiple-definition" \
   -G Ninja
 RUN ninja -C ${LLVM_BUILD_DIR} install-clang install-lld
 RUN ninja -C ${LLVM_BUILD_DIR} install-clang-resource-headers
@@ -82,6 +116,7 @@ RUN ninja -C ${LLVM_BUILD_DIR} \
   install-llvm-ranlib \
   install-llvm-readelf \
   install-llvm-strip
+RUN ninja -C ${LLVM_BUILD_DIR} install-compiler-rt
 
 RUN apk del cmake ninja python3
 

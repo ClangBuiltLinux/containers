@@ -2,6 +2,13 @@ name: Build and test llvm-project
 description: Build and test an llvm-project container
 
 inputs:
+  arch:
+    description: Architecture to build containers for
+    required: true
+  build-args:
+    description: List of build arguments to pass along to Docker
+    required: false
+    default: NONE=none
   file:
     description: Dockerfile to build the container from
     required: true
@@ -21,6 +28,7 @@ runs:
     - name: Build llvm-project
       uses: docker/build-push-action@v3
       with:
+        build-args: ${{ inputs.build-args }}
         context: ./llvm-project
         file: ./llvm-project/${{ inputs.file }}
         load: true
@@ -36,4 +44,5 @@ runs:
       uses: actions/upload-artifact@v3
       with:
         if-no-files-found: error
+        name: artifact-${{ inputs.arch }}
         path: toolchain.tar.zst

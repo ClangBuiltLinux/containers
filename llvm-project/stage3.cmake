@@ -13,13 +13,31 @@ set(CMAKE_CXX_FLAGS "--sysroot=/sysroot" CACHE STRING "")
 set(CMAKE_C_FLAGS "--sysroot=/sysroot" CACHE STRING "")
 
 # Statically link resulting executable.
-set(CMAKE_EXE_LINKER_FLAGS "-static -lc++abi" CACHE STRING "")
+set(CMAKE_EXE_LINKER_FLAGS "-static -lc++abi -ljemalloc" CACHE STRING "")
 
-# Set the default target triple to match the host.
-# TODO: passing in the value of $(clang -print-target-triple) causes failures.
-# It seems that alpine clang's default target triple is x86_64-linux-gnu.
-# Perhaps missing alpine in the triple causes some incompatibility?
-set(LLVM_DEFAULT_TARGET_TRIPLE x86_64-alpine-linux-musl CACHE STRING "")
+# The compiler builtins are necessary.
+set(COMPILER_RT_BUILD_BUILTINS ON CACHE BOOL "")
+
+# GWP ASAN fails to build without libexecinfo-dev. Don't need it for stage3.
+set(COMPILER_RT_BUILD_GWP_ASAN OFF CACHE BOOL "")
+
+# Don't need libfuzzer, ever.
+set(COMPILER_RT_BUILD_LIBFUZZER OFF CACHE BOOL "")
+
+# Don't need memprof, ever.
+set(COMPILER_RT_BUILD_MEMPROF OFF CACHE BOOL "")
+
+# Don't need ORC, ever.
+set(COMPILER_RT_BUILD_ORC OFF CACHE BOOL "")
+
+# Explicitly enable profiling support. The implicit default is ON.
+set(COMPILER_RT_BUILD_PROFILE ON CACHE BOOL "")
+
+# Disable sanitizer support. Not necessary for stage3.
+set(COMPILER_RT_BUILD_SANITIZERS OFF CACHE BOOL "")
+
+# Don't need xray.
+set(COMPILER_RT_BUILD_XRAY OFF CACHE BOOL "")
 
 # Use libc++ from stage2.
 # TODO: is CMAKE_CXX_FLAGS still necessary if this is set?
@@ -28,8 +46,8 @@ set(LLVM_ENABLE_LIBCXX ON CACHE BOOL "")
 # Use lld from stage2.
 set(LLVM_ENABLE_LLD ON CACHE BOOL "")
 
-# Just build clang and lld for now.
-set(LLVM_ENABLE_PROJECTS "clang;lld" CACHE STRING "")
+# Build clang, lld, compiler-rt, and libc.
+set(LLVM_ENABLE_PROJECTS "clang;lld;compiler-rt;libc" CACHE STRING "")
 
 # FORCE_ON causes the build to fail if zlib is not found in the environment
 # during configuration, rather than much later during link.
@@ -38,7 +56,8 @@ set(LLVM_ENABLE_ZLIB "FORCE_ON" CACHE STRING "")
 # This is necessary to statically link libc++ into clang.
 set(LLVM_STATIC_LINK_CXX_STDLIB "1" CACHE STRING "")
 
-# Just build support for x86 for now.
+# Just build stage3 to target the host. It's not the end product, so it won't
+# be able to target all of the kernel targets we can build.
 set(LLVM_TARGETS_TO_BUILD "host;" CACHE STRING "")
 
 # Set clang's default --stdlib= to libc++.

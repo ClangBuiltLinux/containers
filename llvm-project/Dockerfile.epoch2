@@ -1,11 +1,13 @@
-FROM alpine:edge AS source
+ARG BASE
+
+FROM docker.io/alpine:edge AS source
 RUN wget --no-clobber \
   https://github.com/llvm/llvm-project/releases/download/llvmorg-14.0.1/llvm-project-14.0.1.src.tar.xz
 
 ### START STAGE2
 
-FROM ghcr.io/clangbuiltlinux/llvm-project:stage2 as prev_epoch
-FROM alpine:edge as stage_two
+FROM ${BASE} as prev_epoch
+FROM docker.io/alpine:edge as stage_two
 
 COPY --from=prev_epoch /usr/local/bin /usr/local/bin
 COPY --from=prev_epoch /usr/local/lib /usr/local/lib
@@ -16,7 +18,7 @@ COPY --from=prev_epoch /usr/local/include /usr/local/include
 # symlinking nonsense at the start of other builds.
 RUN cd /usr/lib/ && \
   for library in libc++abi.so.1 libc++.a libc++abi.a libc++.so.1 libunwind.so.1 libunwind.a; \
-    do ln -s "/usr/local/lib/x86_64-alpine-linux-musl/${library}" . ; \
+    do ln -sv /usr/local/lib/$(uname -m)-alpine-linux-musl/${library} .; \
   done
 
 RUN apk add musl-dev
@@ -42,6 +44,7 @@ ARG LLVM_BUILD_DIR=llvm-project/llvm/build
 RUN cmake \
   -B ${LLVM_BUILD_DIR} \
   -C llvm-project/stage2.cmake \
+  -D LLVM_DEFAULT_TARGET_TRIPLE=$(clang -print-target-triple) \
   -S llvm-project/llvm \
   -G Ninja
 

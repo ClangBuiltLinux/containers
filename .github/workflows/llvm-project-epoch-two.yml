@@ -4,19 +4,29 @@ on: workflow_dispatch
 jobs:
   epoch2:
     name: stage 2
-    runs-on: [self-hosted, x64]
+    runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: true
+      fail-fast: false
+      matrix:
+        include:
+          - arch: aarch64
+            os: [self-hosted, arm64]
+            platforms: linux/arm64
+          - arch: x86_64
+            os: [self-hosted, x64]
+            platforms: linux/amd64
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Build and test llvm-project
         uses: ./.github/actions/build-test-llvm-project
         with:
+          arch: ${{ matrix.arch }}
+          build-args: BASE=ghcr.io/clangbuiltlinux/llvm-project:stage2-${{ matrix.arch }}
           file: Dockerfile.epoch2
-          platforms: linux/amd64
-          tags: ghcr.io/clangbuiltlinux/llvm-project:stage2
+          platforms: ${{ matrix.platforms }}
+          tags: ghcr.io/clangbuiltlinux/llvm-project:stage2-${{ matrix.arch }}
 
       - name: Push image to ghcr.io
         uses: ./.github/actions/push-container

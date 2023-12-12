@@ -26,12 +26,6 @@ set(CMAKE_C_COMPILER "/usr/local/bin/clang" CACHE FILEPATH "")
 set(CMAKE_EXE_LINKER_FLAGS "--unwindlib=libunwind -static -lc++abi" CACHE STRING "")
 set(CMAKE_SHARED_LINKER_FLAGS "--unwindlib=libunwind" CACHE STRING "")
 
-# Set the default target triple to match the host.
-# TODO: passing in the value of $(clang -print-multiarch) causes failures.
-# It seems that alpine clang's default target triple is x86_64-linux-gnu.
-# Perhaps missing alpine in the triple causes some incompatibility?
-set(LLVM_DEFAULT_TARGET_TRIPLE x86_64-alpine-linux-musl CACHE STRING "")
-
 # Use libc++ from stage1.
 # TODO: is CMAKE_CXX_FLAGS still necessary if this is set?
 set(LLVM_ENABLE_LIBCXX ON CACHE BOOL "")
@@ -49,9 +43,9 @@ set(LLVM_ENABLE_ZLIB "FORCE_ON" CACHE STRING "")
 # This is necessary to statically link libc++ into clang.
 set(LLVM_STATIC_LINK_CXX_STDLIB "1" CACHE STRING "")
 
-# Just build support for x86 for now.
-# TODO: change this to host when adding more stages.
-set(LLVM_TARGETS_TO_BUILD "X86;" CACHE STRING "")
+# Just build stage2 to target the host. It's not the end product, so it won't
+# be able to target all of the kernel targets we can build.
+set(LLVM_TARGETS_TO_BUILD "host;" CACHE STRING "")
 
 # Set clang's default --stdlib= to libc++.
 set(CLANG_DEFAULT_CXX_STDLIB "libc++" CACHE STRING "")
