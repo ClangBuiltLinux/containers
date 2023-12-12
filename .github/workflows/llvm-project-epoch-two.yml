@@ -28,15 +28,12 @@ jobs:
           platforms: ${{ matrix.platforms }}
           tags: ghcr.io/clangbuiltlinux/llvm-project:stage2-${{ matrix.arch }}
 
-      - name: Login to ghcr.io
+      - name: Push image to ghcr.io
+        uses: ./.github/actions/push-container
         if: ${{ github.repository_owner == 'ClangBuiltLinux' && github.event_name != 'pull_request' && github.ref_name == 'main' }}
-        uses: docker/login-action@v2
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Push image to ghcr.io
-        if: ${{ github.repository_owner == 'ClangBuiltLinux' && github.event_name != 'pull_request' && github.ref_name == 'main' }}
-        run: |
-          docker push ghcr.io/clangbuiltlinux/llvm-project:stage2-${{ matrix.arch }}
+          image: clangbuiltlinux/llvm-project
+          tag: stage2
