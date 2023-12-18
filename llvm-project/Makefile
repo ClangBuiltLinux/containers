@@ -9,7 +9,7 @@ IMAGE ?= ghcr.io/clangbuiltlinux/llvm-project
 
 dotfiles: stage2.svg stage1.svg
 
-.PHONY: clang epoch1 epoch2 epoch3
+.PHONY: clang epoch1 epoch2 epoch3 libc
 
 # Argument 1: epoch# (e.g., epoch1; should match the suffix of the Dockerfile)
 # Argument 2: Tag (e.g., ghcr.io/clangbuiltlinux/llvm-project:stage2-x86_64)
@@ -34,6 +34,11 @@ clang: epoch3
 	$(DOCKER) rm llvm-project || true
 	$(DOCKER) create --name llvm-project $(IMAGE):stage3-$(HOST_ARCH)
 	$(DOCKER) cp llvm-project:/usr/local/bin/clang-14 clang
+
+libc:
+	$(DOCKER) rm libc || true
+	# $(DOCKER) create --name libc libc-$(HOST_ARCH)
+	$(DOCKER) build --file Dockerfile.libc . --tag libc
 
 test: epoch3
 	bash ../ci/test-clang.sh $(IMAGE):stage3-$(HOST_ARCH)
