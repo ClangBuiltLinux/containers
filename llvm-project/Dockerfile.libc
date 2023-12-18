@@ -1,0 +1,22 @@
+FROM docker.io/alpine:edge as source
+RUN wget --no-clobber \
+  https://github.com/llvm/llvm-project/releases/download/llvmorg-17.0.6/llvm-project-17.0.6.src.tar.xz
+
+FROM docker.io/alpine:edge AS stage_one
+
+COPY --from=source llvm-project-17.0.6.src.tar.xz /
+RUN tar xf llvm-project-17.0.6.src.tar.xz && \
+  mv llvm-project-17.0.6.src llvm-project
+
+RUN apk add cmake ninja clang python3 lld
+
+COPY libc.cmake llvm-project/.
+ARG LLVM_BUILD_DIR=llvm-project/llvm/build
+
+RUN apk add linux-headers
+
+RUN cmake \
+  -B ${LLVM_BUILD_DIR} \
+  -C llvm-project/libc.cmake \
+  -S llvm-project/llvm \
+  -G Ninja
