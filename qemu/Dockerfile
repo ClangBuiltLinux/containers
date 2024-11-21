@@ -13,5 +13,6 @@ RUN pacman -Syyu --noconfirm && \
         qemu-system-ppc \
         qemu-system-riscv \
         qemu-system-s390x \
+        qemu-system-sparc \
         qemu-system-x86 \
         zstd
